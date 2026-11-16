@@ -1,5 +1,7 @@
 // Catálogo copiado de ../reacoes.json (GIPHY, gerado 2026-11-15). Mostrado por hotlink.
-export const REACOES = {
+import type { Reacao, Regra } from './tipos';
+
+export const REACOES: Record<Regra, Reacao[]> = {
  "abandonado": [
   {
    "id": "jc2PkKKr3clTBekMzn",

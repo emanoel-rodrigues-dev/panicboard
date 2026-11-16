@@ -1,6 +1,8 @@
 // Dados de exemplo. Horários em horas relativas ao momento em que o exemplo é carregado,
 // montados para que cada projeto comece numa regra do motor de reações.
-export const PROJETOS = [
+import type { Estado, Item, Prioridade, Projeto, Status } from './tipos';
+
+export const PROJETOS: Projeto[] = [
   { id: 'meta', sigla: 'MM', nome: 'CRMundi / MetaMundi', curto: 'MetaMundi', cor: '#61b771', tinta: '#0e2413' },
   { id: 'rhia', sigla: 'RH', nome: 'RHIA', curto: 'RHIA', cor: '#3b6fa3', tinta: '#ffffff' },
   { id: 'luga', sigla: 'LG', nome: 'Luga', curto: 'Luga', cor: '#ff8000', tinta: '#241200' },
@@ -9,7 +11,8 @@ export const PROJETOS = [
 
 // status: backlog | fazer | fazendo | revisao | feito ; prioridade: alta | media | baixa
 // prazo/atualizado/criado: horas relativas (negativo = passado)
-const D = [
+type Linha = [string, number, string, Status, Prioridade, number | null, number, number, string, [string, boolean][]];
+const D: Linha[] = [
   // MetaMundi: trabalho em andamento, mas nada se mexe há 60 h -> abandonado
   ['meta', 31, 'Importar contatos do CRM antigo por CSV', 'fazendo', 'alta', 118, -60, -200,
     'Planilha da base antiga tem 14 mil linhas. Mapear colunas "Telefone 2" e "Origem" para os campos novos e validar e-mails duplicados antes de gravar.',
@@ -48,7 +51,7 @@ const D = [
   ['estudos', 23, 'Aula de conversação com a professora', 'feito', 'alta', -26, -26, -90, 'Tema: entrevistas técnicas em inglês.', []],
 ];
 
-export const IDEIAS = [
+export const IDEIAS: [string, number][] = [
   ['App de leitura que marca as palavras novas em inglês e monta flashcards sozinho #estudos', -3],
   ['MetaMundi: aviso no WhatsApp quando um negócio fica 7 dias parado na mesma etapa #crm', -20],
   ['Luga com check-in por QR code na porta do imóvel', -46],
@@ -56,10 +59,10 @@ export const IDEIAS = [
   ['RHIA: simulador de rescisão para o próprio colaborador ver', -130],
 ];
 
-export function montarExemplo(agora) {
-  const h = (n) => new Date(agora + n * 3600e3).toISOString();
-  const itens = D.map(([projeto, num, titulo, status, prioridade, prazo, atualizado, criado, descricao, checklist]) => {
-    const p = PROJETOS.find((x) => x.id === projeto);
+export function montarExemplo(agora: number): Estado {
+  const h = (n: number) => new Date(agora + n * 3600e3).toISOString();
+  const itens: Item[] = D.map(([projeto, num, titulo, status, prioridade, prazo, atualizado, criado, descricao, checklist]) => {
+    const p = PROJETOS.find((x) => x.id === projeto)!;
     return {
       id: `${p.sigla}-${num}`, projeto, titulo, status, prioridade,
       prazo: prazo === null ? null : h(prazo), atualizado: h(atualizado), criado: h(criado),
@@ -70,7 +73,7 @@ export function montarExemplo(agora) {
       ],
     };
   });
-  const ideias = IDEIAS.map(([texto, criado], i) => ({ id: `ID-${i + 1}`, texto, criado: h(criado), promovida: null }));
+  const ideias = IDEIAS.map(([texto, criado], i) => ({ id: `ID-${i + 1}`, texto, criado: h(criado), promovida: null as string | null }));
   const seq = Object.fromEntries(PROJETOS.map((p) => [p.id, Math.max(...itens.filter((i) => i.projeto === p.id).map((i) => +i.id.split('-')[1]))]));
-  return { versao: 1, itens, ideias, seq, seqIdeia: ideias.length, deslocamentoH: 0, girar: {} };
+  return { versao: 1, itens, ideias, seq, seqIdeia: ideias.length, girar: {} };
 }

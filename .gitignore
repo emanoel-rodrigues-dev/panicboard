@@ -2,3 +2,7 @@
 .taste-skill/
 .impeccable/review/
 .impeccable/questions/
+node_modules/
+dist/
+.playwright-mcp/
+*.tsbuildinfo
