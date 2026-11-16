@@ -513,3 +513,7 @@ main { padding-top: var(--nav); }
 .dica.is-on { opacity: 1; transform: none; }
 :root[data-theme="dark"] .dica { background: var(--ink); color: var(--bg); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .dica { background: var(--ink); color: var(--bg); } }
+
+/* projetos: pegar a cor de uma imagem */
+.cor-imagem { display: grid; gap: 10px; justify-items: start; margin-top: 6px; }
+.cor-imagem canvas { width: auto; height: auto; max-width: 100%; max-height: 220px; border-radius: var(--r-sm); border: 1px solid var(--line-2); background: var(--surface-2); cursor: crosshair; }

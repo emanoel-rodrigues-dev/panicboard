@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { PROJETOS } from '../domain/seed';
 import type { Rota } from './contexto';
 
 /** Hora real, atualizada a cada minuto e ao voltar para a aba (bug 7: a tela não ficava parada). */
@@ -30,6 +29,7 @@ export function lerRota(): Rota {
   const [, nome = '', sub = ''] = location.hash.split('/');
   return {
     nome: nome === 'quadro' || nome === 'ideias' ? nome : 'radar',
-    sub: PROJETOS.some((p) => p.id === sub) ? sub : 'todos',
+    // o projeto é conferido na tela, contra os projetos cadastrados
+    sub: sub || 'todos',
   };
 }

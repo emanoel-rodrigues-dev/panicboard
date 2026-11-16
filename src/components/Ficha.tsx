@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { $, useApp } from '../app/contexto';
 import { adicionarPasso, criarItem, marcarPasso, mudarCampo, type Campo, type NovosDados } from '../domain/acoes';
-import { estadoItem, FLUXO, prazoTexto, PRIO, proj, reacao, REGRAS, STATUS } from '../domain/motor';
-import { PROJETOS } from '../domain/seed';
+import { estadoItem, FLUXO, prazoTexto, PRIO, reacao, REGRAS, STATUS } from '../domain/motor';
+import { ativos, proj } from '../domain/projetos';
 import { fmtCurta, H, isoParaLocal, paraLocal, prazoRotulo } from '../domain/tempo';
 import type { Item, Prioridade, Status } from '../domain/tipos';
 import { Calendario } from './Calendario';
@@ -26,7 +26,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
   const novo = alvo.tipo === 'novo';
   const [rascunho, setRascunho] = useState<NovosDados>(() => ({ projeto: alvo.tipo === 'novo' ? alvo.projeto : '', titulo: '', status: 'fazer', prioridade: 'media', prazo: new Date(t + 72 * H).toISOString(), descricao: '', checklist: [] }));
   const i: NovosDados & Partial<Item> = existente ?? rascunho;
-  const p = proj(i.projeto);
+  const p = proj(S.projetos, i.projeto);
 
   // texto em edição: salva ao sair do campo e também antes de fechar (bug 1)
   const [titulo, setTitulo] = useState(existente?.titulo ?? '');
@@ -84,7 +84,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
     const [S2, item] = criarItem(S, { ...rascunho, titulo: tit, descricao }, t);
     atualizar(() => S2);
     onFechar();
-    avisar(`${item.id} criada em ${proj(item.projeto).curto}.`, { rotulo: 'Abrir a ficha', fn: () => abrirFicha(item.id) });
+    avisar(`${item.id} criada em ${proj(S.projetos, item.projeto).curto}.`, { rotulo: 'Abrir a ficha', fn: () => abrirFicha(item.id) });
   };
 
   const est = existente ? estadoItem(existente, t) : 'normal';
@@ -108,7 +108,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
       </div>
       {novo && (
         <fieldset className="campo"><legend>Projeto</legend><div className="opcoes">
-          {PROJETOS.map((x) => <label key={x.id} className="opc opc--proj" style={vars({ '--pc': x.cor, '--pt': x.tinta })}><input type="radio" name="projeto" value={x.id} checked={x.id === i.projeto} onChange={() => mudar('projeto', x.id)} /><span><i className="ptag__dot" aria-hidden="true" />{x.curto}</span></label>)}
+          {ativos(S.projetos).map((x) => <label key={x.id} className="opc opc--proj" style={vars({ '--pc': x.cor, '--pt': x.tinta })}><input type="radio" name="projeto" value={x.id} checked={x.id === i.projeto} onChange={() => mudar('projeto', x.id)} /><span><i className="ptag__dot" aria-hidden="true" />{x.curto}</span></label>)}
         </div></fieldset>
       )}
       <fieldset className="campo"><legend>Status</legend><div className="seg seg--status">

@@ -17,7 +17,7 @@ describe('bug 4: dados salvos com defeito', () => {
   });
 
   it('versão desconhecida também é preservada', () => {
-    const a = armazem({ [CHAVE]: '{"versao":2,"itens":[],"ideias":[],"seq":{}}' });
+    const a = armazem({ [CHAVE]: '{"versao":3,"itens":[],"ideias":[],"seq":{}}' });
     lerEstado(a, T);
     expect(a.m.has(`${CHAVE}.defeito`)).toBe(true);
   });
@@ -29,5 +29,13 @@ describe('bug 4: dados salvos com defeito', () => {
   it('bug 6: estado antigo com relógio simulado salvo é lido sem o deslocamento', () => {
     const a = armazem({ [CHAVE]: JSON.stringify({ versao: 1, itens: [], ideias: [], seq: {}, seqIdeia: 0, girar: {}, deslocamentoH: 72 }) });
     expect('deslocamentoH' in lerEstado(a, T).estado).toBe(false);
+  });
+
+  it('versão 1 (projetos fixos no código) é migrada com um projeto por demanda', () => {
+    const item = { id: 'AB-4', projeto: 'abc', titulo: 'X', status: 'fazer', prioridade: 'media', prazo: null, descricao: '', checklist: [], historico: [], criado: '', atualizado: '' };
+    const a = armazem({ [CHAVE]: JSON.stringify({ versao: 1, itens: [item], ideias: [], seq: { abc: 4 }, seqIdeia: 0, girar: {} }) });
+    const { estado } = lerEstado(a, T);
+    expect(estado.versao).toBe(2);
+    expect(estado.projetos).toEqual([expect.objectContaining({ id: 'abc', sigla: 'AB', nome: 'Abc' })]);
   });
 });

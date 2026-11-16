@@ -1,4 +1,5 @@
 // Onde o estado mora. Hoje: localStorage. Depois: Supabase, com a mesma interface.
+import { projetosDasDemandas } from '../domain/projetos';
 import { montarExemplo } from '../domain/seed';
 import type { Estado } from '../domain/tipos';
 
@@ -19,9 +20,12 @@ export const CHAVE = 'panicboard.v1';
 
 type Armazem = Pick<Storage, 'getItem' | 'setItem'>;
 
-function valido(s: unknown): s is Estado {
-  const e = s as Estado;
-  return !!e && e.versao === 1 && Array.isArray(e.itens) && Array.isArray(e.ideias) && typeof e.seq === 'object';
+type Salvo = Omit<Estado, 'versao' | 'projetos'> & { versao: 1 | 2; projetos?: Estado['projetos'] };
+
+function valido(s: unknown): s is Salvo {
+  const e = s as Salvo;
+  if (!e || !Array.isArray(e.itens) || !Array.isArray(e.ideias) || typeof e.seq !== 'object') return false;
+  return e.versao === 1 || (e.versao === 2 && Array.isArray(e.projetos));
 }
 
 /** Lê o estado salvo. Se houver dado com defeito, guarda a cópia em vez de perder em silêncio. */
@@ -33,8 +37,10 @@ export function lerEstado(armazem: Armazem | null, agora: number): Carga {
     const s = JSON.parse(raw);
     if (valido(s)) {
       // versões anteriores guardavam o relógio simulado no estado; agora ele só vive na sessão
-      const { deslocamentoH: _antigo, ...resto } = s as Estado & { deslocamentoH?: number };
-      return { estado: { ...resto, girar: resto.girar ?? {} } };
+      const { deslocamentoH: _antigo, ...resto } = s as Salvo & { deslocamentoH?: number };
+      // a versão 1 tinha os projetos fixos no código: eles são remontados a partir das demandas
+      const projetos = resto.projetos ?? projetosDasDemandas(resto.itens, resto.seq);
+      return { estado: { ...resto, versao: 2, projetos, girar: resto.girar ?? {} } };
     }
   } catch { /* JSON quebrado: cai no tratamento abaixo */ }
   try { armazem?.setItem(`${CHAVE}.defeito`, raw); } catch { /* ignora */ }

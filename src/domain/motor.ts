@@ -1,6 +1,6 @@
 // Motor de reações: as 4 regras de tempo e o estado de cada demanda.
+import { ativos } from './projetos';
 import { REACOES } from './reacoes';
-import { PROJETOS } from './seed';
 import { dur, H } from './tempo';
 import type { Estado, EstadoItem, Item, Prioridade, Projeto, Reacao, Regra, Status } from './tipos';
 
@@ -19,8 +19,6 @@ export const REGRAS: Record<Regra, { nome: string; regra: string; ordem: number 
   abandonado: { nome: 'Projeto parado', regra: 'Há trabalho em andamento, mas nada se mexe há mais de 48 horas.', ordem: 2 },
   em_dia: { nome: 'Tudo em dia', regra: 'Todas as demandas do ciclo foram entregues.', ordem: 4 },
 };
-
-export const proj = (id: string): Projeto => PROJETOS.find((p) => p.id === id)!;
 
 /** ordenação por prazo, sem prazo vai para o fim */
 export const porPrazo = (a: Item, b: Item) => (Date.parse(a.prazo ?? '') || 9e15) - (Date.parse(b.prazo ?? '') || 9e15);
@@ -75,8 +73,8 @@ export function avaliar(todos: Item[], pid: string, t: number): Avaliacao {
 
 export const ordemRegra = (r: Regra | null) => (r ? REGRAS[r].ordem : 3);
 
-/** os 4 projetos avaliados, do mais urgente para o mais calmo */
-export const avaliarTodos = (itens: Item[], t: number) => PROJETOS.map((p) => avaliar(itens, p.id, t)).sort((a, b) => ordemRegra(a.regra) - ordemRegra(b.regra));
+/** os projetos ativos avaliados, do mais urgente para o mais calmo */
+export const avaliarTodos = (itens: Item[], projetos: Projeto[], t: number) => ativos(projetos).map((p) => avaliar(itens, p.id, t)).sort((a, b) => ordemRegra(a.regra) - ordemRegra(b.regra));
 
 function hash(s: string) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0; return Math.abs(h); }
 

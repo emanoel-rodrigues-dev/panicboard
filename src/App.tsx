@@ -6,12 +6,14 @@ import { Aviso } from './components/Aviso';
 import { Dica } from './components/Dica';
 import { Ficha, type AlvoFicha } from './components/Ficha';
 import { Nav, nomeTema, proximoTema, rotuloRelogio, type Tema } from './components/Nav';
+import { Projetos, type Editando } from './components/Projetos';
 import { Rodape, Tabbar } from './components/Rodape';
 import { preferencia, type Repositorio } from './data/armazenamento';
 import { avancarStatus } from './domain/acoes';
-import { avaliar, proj, REGRAS, STATUS } from './domain/motor';
+import { avaliar, REGRAS, STATUS } from './domain/motor';
+import { ativos, proj } from './domain/projetos';
 import type { Modo } from './domain/raias';
-import { montarExemplo, PROJETOS } from './domain/seed';
+import { montarExemplo } from './domain/seed';
 import { H } from './domain/tempo';
 import type { Estado } from './domain/tipos';
 import { Ideias } from './screens/Ideias';
@@ -19,6 +21,9 @@ import { Quadro } from './screens/Quadro';
 import { Radar } from './screens/Radar';
 
 interface Props { repo: Repositorio; inicial: Estado; avisoInicial?: string }
+
+/** depois: 'demanda' quando o cadastro veio do Nova demanda sem nenhum projeto (ao criar, segue para a demanda) */
+type Gaveta = AlvoFicha | { tipo: 'projetos'; editando: Editando; depois?: 'demanda' };
 
 export function App({ repo, inicial, avisoInicial }: Props) {
   const [S, setS] = useState(inicial);
@@ -35,7 +40,7 @@ export function App({ repo, inicial, avisoInicial }: Props) {
   const [ideiasFiltro, setIdeiasFiltro] = useState<'abertas' | 'promovidas'>('abertas');
   const [tema, setTema] = useState<Tema>(() => (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'));
   const [aviso, setAviso] = useState<{ msg: string; acao?: AcaoAviso; on: boolean }>({ msg: '', on: false });
-  const [ficha, setFicha] = useState<AlvoFicha | null>(null);
+  const [ficha, setFicha] = useState<Gaveta | null>(null);
   const [fichaAberta, setFichaAberta] = useState(false);
 
   const primeiro = useRef(true);
@@ -64,13 +69,13 @@ export function App({ repo, inicial, avisoInicial }: Props) {
   useEffect(() => { if (avisoInicial) avisar(avisoInicial); }, [avisoInicial, avisar]);
 
   /* ---------- ficha (gaveta) ---------- */
-  const abrir = useCallback((alvo: AlvoFicha) => {
+  const abrir = useCallback((alvo: Gaveta) => {
     clearTimeout(timerFicha.current);
     pendente.current?.();
     voltaFoco.current = document.activeElement;
     flushSync(() => { setFicha(alvo); setFichaAberta(false); });
     requestAnimationFrame(() => setFichaAberta(true));
-    focarDepois(alvo.tipo === 'novo' ? '#f-titulo' : '.ficha__fechar');
+    focarDepois(alvo.tipo === 'novo' ? '#f-titulo' : alvo.tipo === 'projetos' && alvo.editando ? '#p-nome' : '.ficha__fechar');
   }, [focarDepois]);
   const fecharFicha = useCallback(() => {
     if (!ficha) return;
@@ -82,14 +87,29 @@ export function App({ repo, inicial, avisoInicial }: Props) {
     if (volta && document.contains(volta)) volta.focus();
   }, [ficha, reduz]);
   const abrirFicha = useCallback((id: string) => abrir({ tipo: 'item', id }), [abrir]);
-  const novaDemanda = useCallback((pid?: string) => abrir({ tipo: 'novo', projeto: pid || PROJETOS[0].id }), [abrir]);
+  const abrirProjetos = useCallback((editando: Editando = null) => abrir({ tipo: 'projetos', editando }), [abrir]);
+  /** projetoNovo: o projeto acabou de ser criado e ainda não está no S desta closure */
+  const novaDemanda = useCallback((pid?: string, projetoNovo = false) => {
+    if (projetoNovo && pid) { abrir({ tipo: 'novo', projeto: pid }); return; }
+    const lista = ativos(S.projetos);
+    if (!lista.length) { abrir({ tipo: 'projetos', editando: 'novo', depois: 'demanda' }); avisar('Cadastre um projeto antes da primeira demanda.'); return; }
+    abrir({ tipo: 'novo', projeto: lista.some((p) => p.id === pid) ? pid! : lista[0].id });
+  }, [abrir, avisar, S.projetos]);
   useEffect(() => { document.body.classList.toggle('com-ficha', fichaAberta); }, [fichaAberta]);
+  // clique fora fecha a gaveta; o que abre outra gaveta (cartão, Nova demanda, Projetos) e o aviso não contam
+  useEffect(() => {
+    if (!fichaAberta) return;
+    const ABRE = '[data-gaveta], [data-abrir], [data-nova], [data-abrir-projetos], [data-projeto-novo], .aviso, .dica';
+    const clique = (e: MouseEvent) => { const el = e.target as Element; if (el.isConnected && !el.closest(ABRE)) fecharFicha(); };
+    document.addEventListener('click', clique);
+    return () => document.removeEventListener('click', clique);
+  }, [fichaAberta, fecharFicha]);
 
   /* ---------- relógio e dados de exemplo ---------- */
   const avancarRelogio = useCallback((h: number) => {
     const novoDesl = h === 0 ? 0 : deslocamentoH + h;
     const t2 = real + novoDesl * H;
-    const mud = PROJETOS.map((p) => {
+    const mud = ativos(S.projetos).map((p) => {
       const antes = avaliar(S.itens, p.id, t).regra; const depois = avaliar(S.itens, p.id, t2).regra;
       return depois !== antes ? `${p.curto}: ${depois ? REGRAS[depois].nome : 'sem alerta'}` : null;
     }).filter(Boolean);
@@ -113,7 +133,7 @@ export function App({ repo, inicial, avisoInicial }: Props) {
     if (novo.status === i.status) return;
     setS(S2);
     const a = avaliar(S2.itens, i.projeto, t);
-    avisar(`${i.id} foi para ${STATUS[novo.status]}.${a.regra === 'em_dia' ? ` ${proj(i.projeto).curto} fechou o ciclo.` : ''}`);
+    avisar(`${i.id} foi para ${STATUS[novo.status]}.${a.regra === 'em_dia' ? ` ${proj(S.projetos, i.projeto).curto} fechou o ciclo.` : ''}`);
   }, [S, t, avisar]);
 
   /* ---------- tema ---------- */
@@ -162,12 +182,12 @@ export function App({ repo, inicial, avisoInicial }: Props) {
   const parado = reduz || pausado;
   const ctx = useMemo<AppCtx>(() => ({
     S, t, deslocamentoH, rota, parado, reduz, pausado, tocando, modo, frente, ideiasFiltro,
-    atualizar, avisar, focarDepois, avancarItem, abrirFicha, novaDemanda, avancarRelogio, restaurarExemplo,
+    atualizar, avisar, focarDepois, avancarItem, abrirFicha, novaDemanda, abrirProjetos, avancarRelogio, restaurarExemplo,
     alternarGif: (k) => setTocando((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n; }),
     alternarPausa: () => { setPausado((p) => { preferencia.gravar('pausado', p ? '0' : '1'); return !p; }); setTocando(new Set()); },
     setModo: (m) => { setModoSt(m); preferencia.gravar('modo', m); },
     setFrente, setIdeiasFiltro,
-  }), [S, t, deslocamentoH, rota, parado, reduz, pausado, tocando, modo, frente, ideiasFiltro, atualizar, avisar, focarDepois, avancarItem, abrirFicha, novaDemanda, avancarRelogio, restaurarExemplo]);
+  }), [S, t, deslocamentoH, rota, parado, reduz, pausado, tocando, modo, frente, ideiasFiltro, atualizar, avisar, focarDepois, avancarItem, abrirFicha, novaDemanda, abrirProjetos, avancarRelogio, restaurarExemplo]);
 
   return (
     <Contexto.Provider value={ctx}>
@@ -179,7 +199,9 @@ export function App({ repo, inicial, avisoInicial }: Props) {
       </main>
       <Rodape />
       <aside className={fichaAberta ? 'gaveta is-aberta' : 'gaveta'} data-gaveta="" role="dialog" aria-modal="false" aria-labelledby="gaveta-h" hidden={!ficha}>
-        {ficha && <Ficha key={ficha.tipo === 'item' ? ficha.id : 'novo'} alvo={ficha} onFechar={fecharFicha} registrarPendente={(fn) => { pendente.current = fn; }} />}
+        {ficha && (ficha.tipo === 'projetos'
+          ? <Projetos key={`projetos-${ficha.editando}`} inicial={ficha.editando} depois={ficha.depois} onFechar={fecharFicha} />
+          : <Ficha key={ficha.tipo === 'item' ? ficha.id : 'novo'} alvo={ficha} onFechar={fecharFicha} registrarPendente={(fn) => { pendente.current = fn; }} />)}
       </aside>
       <Tabbar />
       <Aviso {...aviso} onAcao={() => { aviso.acao?.fn(); setAviso((a) => ({ ...a, on: false })); }} />

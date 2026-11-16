@@ -1,5 +1,6 @@
 // Transições de estado puras: recebem o Estado e devolvem um novo, sem mutar o original.
-import { FLUXO, PRIO, proj, STATUS } from './motor';
+import { FLUXO, PRIO, STATUS } from './motor';
+import { proj } from './projetos';
 import { fmtCurta } from './tempo';
 import { tituloDaIdeia } from './texto';
 import type { Estado, Ideia, Item, Prioridade, Regra, Status } from './tipos';
@@ -64,8 +65,10 @@ export function adicionarPasso(S: Estado, id: string, texto: string, t: number):
 export type NovosDados = Pick<Item, 'projeto' | 'titulo' | 'status' | 'prioridade' | 'prazo' | 'descricao' | 'checklist'>;
 
 export function criarItem(S: Estado, dados: NovosDados, t: number, origem = 'Demanda criada'): [Estado, Item] {
-  const p = proj(dados.projeto);
-  const n = (S.seq[p.id] || 0) + 1;
+  const p = proj(S.projetos, dados.projeto);
+  let n = (S.seq[p.id] || 0) + 1;
+  // a sigla pode ter mudado ou passado de um projeto para outro: o código nunca se repete
+  while (S.itens.some((i) => i.id === `${p.sigla}-${n}`)) n++;
   const em = iso(t);
   const item: Item = { ...dados, id: `${p.sigla}-${n}`, criado: em, atualizado: em, historico: [{ em, texto: origem }] };
   return [{ ...S, seq: { ...S.seq, [p.id]: n }, itens: [...S.itens, item] }, item];

@@ -1,16 +1,20 @@
 import { useApp } from '../app/contexto';
 import { Ico, TagProjeto, vars } from '../components/Icone';
 import { proximoStatus } from '../domain/acoes';
-import { avaliar, estadoItem, PENDENTE, prazoTexto, PRIO, proj, REGRAS, STATUS } from '../domain/motor';
+import { avaliar, estadoItem, PENDENTE, prazoTexto, PRIO, REGRAS, STATUS } from '../domain/motor';
+import { ativos, proj } from '../domain/projetos';
 import { montarRaias } from '../domain/raias';
-import { PROJETOS } from '../domain/seed';
 import type { Item } from '../domain/tipos';
 
 export function Quadro() {
-  const { S, t, rota, modo, setModo } = useApp();
-  const filtro = rota.sub;
-  const filtros = [{ id: 'todos', curto: 'Todos', cor: 'var(--ink)' }, ...PROJETOS];
-  const itens = S.itens.filter((i) => filtro === 'todos' || i.projeto === filtro);
+  const { S, t, rota, modo, setModo, abrirProjetos } = useApp();
+  const lista = ativos(S.projetos);
+  // projeto arquivado ou inexistente na URL cai em "Todos"
+  const filtro = lista.some((p) => p.id === rota.sub) ? rota.sub : 'todos';
+  const filtros = [{ id: 'todos', curto: 'Todos', cor: 'var(--ink)' }, ...lista];
+  // demandas de projetos arquivados ficam guardadas, fora do quadro
+  const visiveis = S.itens.filter((i) => lista.some((p) => p.id === i.projeto));
+  const itens = visiveis.filter((i) => filtro === 'todos' || i.projeto === filtro);
   const raias = montarRaias(itens, modo, t);
   return (
     <section className="tela" aria-labelledby="quadro-h">
@@ -24,7 +28,7 @@ export function Quadro() {
         </div>
         <div className="filtros" role="group" aria-label="Filtrar por projeto" data-filtros="">
           {filtros.map((p) => {
-            const n = S.itens.filter((i) => (p.id === 'todos' || i.projeto === p.id) && PENDENTE(i)).length;
+            const n = visiveis.filter((i) => (p.id === 'todos' || i.projeto === p.id) && PENDENTE(i)).length;
             const regra = p.id !== 'todos' ? avaliar(S.itens, p.id, t).regra : null;
             return (
               <a key={p.id} className="filtro" href={`#/quadro${p.id === 'todos' ? '' : `/${p.id}`}`} style={vars({ '--pc': p.cor })} aria-current={filtro === p.id ? 'page' : undefined}>
@@ -33,6 +37,7 @@ export function Quadro() {
               </a>
             );
           })}
+          <button className="filtro" type="button" data-abrir-projetos="" onClick={() => abrirProjetos()}><Ico n="editar" /><span>Projetos</span></button>
         </div>
         <div className="raias" data-raias="">
           {raias.map((r) => (
@@ -50,8 +55,8 @@ export function Quadro() {
 }
 
 function Cartao({ i }: { i: Item }) {
-  const { t, modo, abrirFicha, avancarItem, focarDepois } = useApp();
-  const p = proj(i.projeto);
+  const { S, t, modo, abrirFicha, avancarItem, focarDepois } = useApp();
+  const p = proj(S.projetos, i.projeto);
   const est = estadoItem(i, t);
   const prox = proximoStatus(i.status);
   return (

@@ -11,6 +11,8 @@ export interface Projeto {
   cor: string;
   /** cor do texto sobre a cor do projeto */
   tinta: string;
+  /** some do radar, do quadro e das listas de escolha; as demandas continuam guardadas */
+  arquivado?: boolean;
 }
 
 export interface Passo { t: string; feito: boolean }
@@ -40,7 +42,8 @@ export interface Ideia {
 }
 
 export interface Estado {
-  versao: 1;
+  versao: 2;
+  projetos: Projeto[];
   itens: Item[];
   ideias: Ideia[];
   seq: Record<string, number>;
