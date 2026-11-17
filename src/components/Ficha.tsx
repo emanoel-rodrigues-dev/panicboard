@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { $, useApp } from '../app/contexto';
-import { adicionarPasso, criarItem, marcarPasso, mudarCampo, type Campo, type NovosDados } from '../domain/acoes';
+import { adicionarPasso, criarItem, editarPasso, excluirItem, marcarPasso, mudarCampo, removerPasso, type Campo, type NovosDados } from '../domain/acoes';
 import { estadoItem, FLUXO, prazoTexto, PRIO, reacao, REGRAS, STATUS } from '../domain/motor';
 import { ativos, proj } from '../domain/projetos';
 import { fmtCurta, H, isoParaLocal, paraLocal, prazoRotulo } from '../domain/tempo';
@@ -33,6 +33,8 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
   const [descricao, setDescricao] = useState(existente?.descricao ?? '');
   const [erroTitulo, setErroTitulo] = useState(false);
   const [passo, setPasso] = useState('');
+  // passo do checklist em edição: índice e texto
+  const [editando, setEditando] = useState<{ n: number; t: string } | null>(null);
   const [calAberto, setCalAberto] = useState(false);
   const textos = useRef({ titulo, descricao });
   textos.current = { titulo, descricao };
@@ -68,6 +70,32 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
   const marcar = (n: number, feito: boolean) => {
     if (novo) setRascunho((r) => ({ ...r, checklist: r.checklist.map((c, k) => (k === n ? { ...c, feito } : c)) }));
     else atualizar((s) => marcarPasso(s, existente!.id, n, feito, t));
+  };
+  const salvarPasso = () => {
+    if (!editando) return;
+    const { n, t: txt } = editando;
+    if (novo) { if (txt.trim()) setRascunho((r) => ({ ...r, checklist: r.checklist.map((c, k) => (k === n ? { ...c, t: txt.trim() } : c)) })); }
+    else atualizar((s) => editarPasso(s, existente!.id, n, txt, t));
+    setEditando(null);
+    setTimeout(() => $(`[data-ck-editar="${n}"]`)?.focus());
+  };
+  const tirarPasso = (n: number) => {
+    const texto = i.checklist[n].t;
+    if (novo) setRascunho((r) => ({ ...r, checklist: r.checklist.filter((_, k) => k !== n) }));
+    else {
+      const antes = existente!;
+      atualizar((s) => removerPasso(s, antes.id, n, t));
+      avisar(`Passo removido: ${texto}`, { rotulo: 'Desfazer', fn: () => atualizar((s) => ({ ...s, itens: s.itens.map((x) => (x.id === antes.id ? { ...x, checklist: antes.checklist, historico: [...x.historico, { em: new Date(t).toISOString(), texto: `Passo devolvido: ${texto}` }] } : x)) })) });
+    }
+    $('#f-ck')?.focus();
+  };
+  const excluir = () => {
+    if (!existente) return;
+    const r = excluirItem(S, existente.id);
+    if (!r) return;
+    onFechar();
+    atualizar((s) => excluirItem(s, existente.id)?.[0] ?? s);
+    avisar(`${existente.id} excluída.`, { rotulo: 'Desfazer', fn: () => atualizar(r[1]) });
   };
   const addPasso = () => {
     const txt = passo.trim();
@@ -132,7 +160,18 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
         <textarea id="f-desc" name="descricao" rows={5} value={descricao} onChange={(e) => setDescricao(e.target.value)} onBlur={() => salvarCampo('descricao', descricao)} />
       </div>
       <fieldset className="campo"><legend>Checklist</legend>
-        <ul className="ck">{i.checklist.map((c, n) => <li key={n}><label><input type="checkbox" data-ck={n} checked={c.feito} onChange={(e) => marcar(n, e.target.checked)} /><span>{c.t}</span></label></li>)}</ul>
+        <ul className="ck">{i.checklist.map((c, n) => (editando?.n === n
+          ? <li key={n} className="ck__novo">
+              <label className="sr" htmlFor="f-ck-ed">{`Editar o passo ${c.t}`}</label>
+              <input id="f-ck-ed" autoFocus autoComplete="off" value={editando.t} onChange={(e) => setEditando({ n, t: e.target.value })}
+                onKeyDown={(e: KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); salvarPasso(); } if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setEditando(null); } }} />
+              <button className="btn btn--secondary" type="button" onClick={salvarPasso}>Salvar</button>
+            </li>
+          : <li key={n}>
+              <label><input type="checkbox" data-ck={n} checked={c.feito} onChange={(e) => marcar(n, e.target.checked)} /><span>{c.t}</span></label>
+              <button className="ck__acao" type="button" data-ck-editar={n} aria-label={`Editar o passo ${c.t}`} data-tip="Editar" onClick={() => setEditando({ n, t: c.t })}><Ico n="editar" /></button>
+              <button className="ck__acao" type="button" data-ck-remover={n} aria-label={`Remover o passo ${c.t}`} data-tip="Remover" onClick={() => tirarPasso(n)}><Ico n="lixo" /></button>
+            </li>))}</ul>
         <div className="ck__novo">
           <label className="sr" htmlFor="f-ck">Novo passo</label>
           <input id="f-ck" placeholder="Novo passo" autoComplete="off" value={passo} onChange={(e) => setPasso(e.target.value)} onKeyDown={(e: KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); addPasso(); } }} />
@@ -145,6 +184,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
               {existente.historico.map((h, n) => <li key={n}><time dateTime={h.em}>{fmtCurta.format(Date.parse(h.em))}</time><span>{h.texto}</span></li>).reverse()}
             </ol></section>
             <p className="ficha__salvo">Cada mudança é salva na hora e entra no histórico.</p>
+            <div className="ficha__acoes"><button className="btn btn--secondary" type="button" data-excluir={existente.id} onClick={excluir}>Excluir demanda</button></div>
           </>
         : <div className="ficha__acoes"><button className="btn btn--primary" type="submit">Criar demanda</button><button className="btn btn--secondary" type="button" data-fechar="" onClick={onFechar}>Cancelar</button></div>}
     </form>

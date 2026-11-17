@@ -6,14 +6,17 @@ export type Modo = 'prazo' | 'status';
 export interface Raia { id: string; nome: string; est: EstadoItem | 'atrasado' | 'prazo_apertado' | null; itens: Item[] }
 
 const recentes = (a: Item, b: Item) => Date.parse(b.atualizado) - Date.parse(a.atualizado);
+const PESO = { alta: 0, media: 1, baixa: 2 } as const;
+/** dentro de cada raia: alta prioridade primeiro; empate, o prazo mais perto */
+const porPrioridade = (a: Item, b: Item) => PESO[a.prioridade] - PESO[b.prioridade] || porPrazo(a, b);
 
 export function montarRaias(itens: Item[], modo: Modo, t: number): Raia[] {
   if (modo === 'status') {
     const status: Status[] = itens.some((i) => i.status === 'backlog') ? ['backlog', ...FLUXO] : FLUXO;
-    return status.map((s) => ({ id: s, nome: STATUS[s], est: s === 'feito' ? 'feito' : null, itens: itens.filter((i) => i.status === s) }));
+    return status.map((s) => ({ id: s, nome: STATUS[s], est: s === 'feito' ? 'feito' : null, itens: itens.filter((i) => i.status === s).sort(s === 'feito' ? recentes : porPrioridade) }));
   }
   // por prazo: tudo que não foi entregue, inclusive backlog
-  const pend = itens.filter(PENDENTE).sort(porPrazo);
+  const pend = itens.filter(PENDENTE).sort(porPrioridade);
   const em = (i: Item) => (i.prazo ? Date.parse(i.prazo) - t : null);
   const entre = (i: Item, min: number, max: number) => { const d = em(i); return d !== null && d >= min && d <= max; };
   return [

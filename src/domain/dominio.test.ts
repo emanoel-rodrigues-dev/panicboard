@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { avancarStatus, criarItem, descartarIdeia, mudarCampo, promoverIdeia } from './acoes';
+import { avancarStatus, criarItem, descartarIdeia, editarPasso, excluirItem, mudarCampo, promoverIdeia, removerPasso } from './acoes';
 import { avaliar, avaliarTodos, estadoItem, PENDENTE } from './motor';
 import { arquivarProjeto, coresDaImagem, criarProjeto, editarProjeto, lerHex, sugerirSigla, tintaPara, validarProjeto } from './projetos';
 import { montarRaias } from './raias';
@@ -154,5 +154,45 @@ describe('cadastro de projetos', () => {
     const px = (cores: [number, number, number, number, number][]) => new Uint8ClampedArray(cores.flatMap(([r, g, b, a, n]) => Array.from({ length: n }, () => [r, g, b, a]).flat()));
     const img = px([[255, 255, 255, 255, 50], [214, 51, 108, 255, 30], [212, 50, 110, 255, 5], [59, 111, 163, 255, 10], [0, 0, 0, 0, 99]]);
     expect(coresDaImagem(img)).toEqual(['#d6336c', '#3b6fa3']);
+  });
+});
+
+describe('extras', () => {
+  it('edita e remove passo do checklist, com histórico', () => {
+    let S = editarPasso(exemplo(), 'FN-31', 0, 'Mapear todas as colunas', T);
+    let i = S.itens.find((x) => x.id === 'FN-31')!;
+    expect(i.checklist[0]).toEqual({ t: 'Mapear todas as colunas', feito: true });
+    expect(i.historico.at(-1)!.texto).toBe('Passo editado: Mapear colunas → Mapear todas as colunas');
+    expect(editarPasso(S, 'FN-31', 0, '  ', T)).toBe(S);
+    S = removerPasso(S, 'FN-31', 1, T);
+    i = S.itens.find((x) => x.id === 'FN-31')!;
+    expect(i.checklist.map((p) => p.t)).toEqual(['Mapear todas as colunas', 'Conferir duplicados']);
+    expect(i.historico.at(-1)!.texto).toBe('Passo removido: Rodar em homologação');
+  });
+
+  it('exclui a demanda, solta a ideia promovida e o desfazer devolve tudo', () => {
+    const [S1, item] = promoverIdeia(exemplo(), 'ID-1', 'estudos', T)!;
+    const [S2, desfazer] = excluirItem(S1, item.id)!;
+    expect(S2.itens.some((x) => x.id === item.id)).toBe(false);
+    expect(S2.ideias.find((x) => x.id === 'ID-1')!.promovida).toBeNull();
+    const S3 = desfazer(S2);
+    expect(S3.itens.map((x) => x.id)).toEqual(S1.itens.map((x) => x.id));
+    expect(S3.ideias.find((x) => x.id === 'ID-1')!.promovida).toBe(item.id);
+  });
+
+  it('código de demanda excluída não é reaproveitado', () => {
+    const [S1, a] = criarItem(exemplo(), { projeto: 'folha', titulo: 'A', status: 'fazer', prioridade: 'media', prazo: null, descricao: '', checklist: [] }, T);
+    const [S2] = excluirItem(S1, a.id)!;
+    const [, b] = criarItem(S2, { projeto: 'folha', titulo: 'B', status: 'fazer', prioridade: 'media', prazo: null, descricao: '', checklist: [] }, T);
+    expect(b.id).not.toBe(a.id);
+  });
+
+  it('dentro da raia, alta prioridade vem antes; empate pelo prazo', () => {
+    const S = exemplo();
+    const semana = montarRaias(S.itens, 'prazo', T).find((r) => r.id === 'semana')!;
+    const pesos = semana.itens.map((i) => ({ alta: 0, media: 1, baixa: 2 })[i.prioridade]);
+    expect(pesos).toEqual([...pesos].sort());
+    const fazer = montarRaias(S.itens, 'status', T).find((r) => r.id === 'fazer')!;
+    expect(fazer.itens[0].prioridade).toBe('alta');
   });
 });

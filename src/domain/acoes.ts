@@ -97,3 +97,38 @@ export function descartarIdeia(S: Estado, id: string): [Estado, (s: Estado) => E
 }
 
 export const girarGif = (S: Estado, regra: Regra): Estado => ({ ...S, girar: { ...S.girar, [regra]: (S.girar[regra] || 0) + 1 } });
+
+export function editarPasso(S: Estado, id: string, n: number, texto: string, t: number): Estado {
+  const i = S.itens.find((x) => x.id === id);
+  const novo = texto.trim();
+  if (!i?.checklist[n] || !novo || novo === i.checklist[n].t) return S;
+  const c: Item = { ...i, checklist: i.checklist.map((p, k) => (k === n ? { ...p, t: novo } : p)) };
+  registrar(c, `Passo editado: ${i.checklist[n].t} → ${novo}`, t);
+  return trocarItem(S, c);
+}
+
+export function removerPasso(S: Estado, id: string, n: number, t: number): Estado {
+  const i = S.itens.find((x) => x.id === id);
+  if (!i?.checklist[n]) return S;
+  const c: Item = { ...i, checklist: i.checklist.filter((_, k) => k !== n) };
+  registrar(c, `Passo removido: ${i.checklist[n].t}`, t);
+  return trocarItem(S, c);
+}
+
+/**
+ * Exclui a demanda e devolve também a função que a recoloca (mesma posição e mesmo código).
+ * O contador do projeto não volta: o código excluído nunca é reaproveitado por outra demanda.
+ * Ideias promovidas para ela voltam a ficar soltas, e o desfazer liga de novo.
+ */
+export function excluirItem(S: Estado, id: string): [Estado, (s: Estado) => Estado] | null {
+  const n = S.itens.findIndex((x) => x.id === id);
+  if (n < 0) return null;
+  const fora = S.itens[n];
+  const ideias = S.ideias.filter((d) => d.promovida === id).map((d) => d.id);
+  const desfazer = (s: Estado): Estado => {
+    const itens = [...s.itens];
+    itens.splice(Math.min(n, itens.length), 0, fora);
+    return { ...s, itens, ideias: s.ideias.map((d) => (ideias.includes(d.id) && !d.promovida ? { ...d, promovida: id } : d)) };
+  };
+  return [{ ...S, itens: S.itens.filter((x) => x.id !== id), ideias: S.ideias.map((d) => (d.promovida === id ? { ...d, promovida: null } : d)) }, desfazer];
+}
