@@ -4,6 +4,9 @@ import { App, type Conta } from './App';
 import { repositorioLocal, type Carga, type Repositorio } from './data/armazenamento';
 import './styles.css';
 
+// PWA: só no build (no dev o cache atrapalharia o recarregar)
+if (import.meta.env.PROD && 'serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => { /* sem PWA, o app funciona igual */ });
+
 const raiz = createRoot(document.getElementById('root')!);
 const abrir = (repo: Repositorio, carga: Carga, conta?: Conta) => raiz.render(
   <StrictMode>

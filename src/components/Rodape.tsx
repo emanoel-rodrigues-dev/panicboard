@@ -1,8 +1,9 @@
 import { useApp } from '../app/contexto';
 import type { Conta } from '../App';
+import type { Avisos } from '../app/notificacoes';
 import { Marca } from './Nav';
 
-export function Rodape({ conta }: { conta?: Conta }) {
+export function Rodape({ conta, avisos, onAvisos }: { conta?: Conta; avisos: Avisos; onAvisos: () => void }) {
   return (
     <footer className="closing">
       <div className="wrap closing__in">
@@ -11,6 +12,9 @@ export function Rodape({ conta }: { conta?: Conta }) {
           {conta
             ? <p>{`Salvo na conta ${conta.email}. `}<button className="link" type="button" data-sair="" onClick={conta.sair}>Sair</button></p>
             : <p>Tudo fica salvo neste navegador.</p>}
+          {avisos.suporte && (avisos.bloqueado && !avisos.ligado
+            ? <p>Notificações bloqueadas neste navegador.</p>
+            : <p><button className="link" type="button" data-avisos="" aria-pressed={avisos.ligado} onClick={onAvisos}>{avisos.ligado ? 'Avisos de prazo ligados · Desligar' : 'Avisar quando um prazo apertar'}</button></p>)}
         </div>
         <div className="closing__col">
           <h3>Telas</h3>

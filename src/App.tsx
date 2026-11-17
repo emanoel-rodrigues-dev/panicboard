@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { flushSync } from 'react-dom';
 import { Contexto, type AcaoAviso, type App as AppCtx, type Rota } from './app/contexto';
 import { lerRota, useHoraReal, useMedia } from './app/hooks';
+import { useNotificacoes } from './app/notificacoes';
 import { Aviso } from './components/Aviso';
 import { Dica } from './components/Dica';
 import { Ficha, type AlvoFicha } from './components/Ficha';
@@ -33,6 +34,7 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
   const real = useHoraReal();
   const t = real + deslocamentoH * H;
   const reduz = useMedia('(prefers-reduced-motion: reduce)');
+  const avisos = useNotificacoes(S, t, deslocamentoH !== 0);
   const [rota, setRota] = useState<Rota>(lerRota);
   const [modo, setModoSt] = useState<Modo>(() => (preferencia.ler('modo', 'prazo') === 'status' ? 'status' : 'prazo'));
   const [pausado, setPausado] = useState(() => preferencia.ler('pausado', '0') === '1');
@@ -208,7 +210,10 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
         <div className="view" data-view="quadro" hidden={rota.nome !== 'quadro'}>{rota.nome === 'quadro' && <Quadro />}</div>
         <div className="view view--ideias" data-view="ideias" hidden={rota.nome !== 'ideias'}>{rota.nome === 'ideias' && <Ideias />}</div>
       </main>
-      <Rodape conta={conta} />
+      <Rodape conta={conta} avisos={avisos} onAvisos={async () => {
+        if (avisos.ligado) { avisos.desligar(); avisar('Avisos de prazo desligados.'); return; }
+        avisar(await avisos.ligar() ? 'Avisos de prazo ligados. Aviso quando uma demanda atrasar ou vencer em 24 h.' : 'O navegador não deixou mostrar notificações. Dá para liberar nas configurações do site.');
+      }} />
       <aside className={fichaAberta ? 'gaveta is-aberta' : 'gaveta'} data-gaveta="" role="dialog" aria-modal="false" aria-labelledby="gaveta-h" hidden={!ficha}>
         {ficha && (ficha.tipo === 'projetos'
           ? <Projetos key={`projetos-${aberturas.current}`} inicial={ficha.editando} depois={ficha.depois} onFechar={fecharFicha} />
