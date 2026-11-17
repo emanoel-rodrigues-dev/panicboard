@@ -1,14 +1,44 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from './App';
-import { repositorioLocal } from './data/armazenamento';
+import { App, type Conta } from './App';
+import { repositorioLocal, type Carga, type Repositorio } from './data/armazenamento';
 import './styles.css';
 
-const repo = repositorioLocal();
-const carga = await repo.carregar();
-
-createRoot(document.getElementById('root')!).render(
+const raiz = createRoot(document.getElementById('root')!);
+const abrir = (repo: Repositorio, carga: Carga, conta?: Conta) => raiz.render(
   <StrictMode>
-    <App repo={repo} inicial={carga.estado} avisoInicial={carga.aviso} />
+    <App repo={repo} inicial={carga.estado} avisoInicial={carga.aviso} conta={conta} />
   </StrictMode>,
 );
+
+const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const chave = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+
+if (!url || !chave) {
+  // sem Supabase configurado: tudo no navegador, como uma demonstração
+  const repo = repositorioLocal();
+  abrir(repo, await repo.carregar());
+} else {
+  // a biblioteca só é baixada quando o Supabase está configurado
+  const [{ createClient }, { repositorioSupabase }, { Entrar }] = await Promise.all([import('@supabase/supabase-js'), import('./data/supabase'), import('./components/Entrar')]);
+  const db = createClient(url, chave, { auth: { flowType: 'pkce' } });
+  const { data } = await db.auth.getSession(); // troca o ?code= do link mágico pela sessão
+  if (location.search.includes('code=')) history.replaceState(null, '', location.pathname + location.hash);
+  const sessao = data.session;
+  if (!sessao) {
+    raiz.render(<StrictMode><Entrar db={db} /></StrictMode>);
+    db.auth.onAuthStateChange((_e, s) => { if (s) location.reload(); });
+  } else {
+    const avisar = (msg: string) => window.dispatchEvent(new CustomEvent('panicboard:aviso', { detail: msg }));
+    const conta: Conta = { email: sessao.user.email ?? '', sair: async () => { await db.auth.signOut(); location.reload(); } };
+    const repo = repositorioSupabase(db, { onErro: avisar });
+    try {
+      abrir(repo, await repo.carregar(), conta);
+    } catch (e) {
+      console.error(e);
+      const local = repositorioLocal();
+      const carga = await local.carregar();
+      abrir(local, { ...carga, aviso: 'Não consegui abrir a sua conta. Mostrando a cópia deste navegador; as mudanças ficam só aqui até recarregar.' }, conta);
+    }
+  }
+}

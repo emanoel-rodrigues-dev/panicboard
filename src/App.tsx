@@ -20,12 +20,13 @@ import { Ideias } from './screens/Ideias';
 import { Quadro } from './screens/Quadro';
 import { Radar } from './screens/Radar';
 
-interface Props { repo: Repositorio; inicial: Estado; avisoInicial?: string }
+export interface Conta { email: string; sair: () => void }
+interface Props { repo: Repositorio; inicial: Estado; avisoInicial?: string; conta?: Conta }
 
 /** depois: 'demanda' quando o cadastro veio do Nova demanda sem nenhum projeto (ao criar, segue para a demanda) */
 type Gaveta = AlvoFicha | { tipo: 'projetos'; editando: Editando; depois?: 'demanda' };
 
-export function App({ repo, inicial, avisoInicial }: Props) {
+export function App({ repo, inicial, avisoInicial, conta }: Props) {
   const [S, setS] = useState(inicial);
   // relógio simulado: só na memória da sessão, nunca salvo junto com os dados (bug 6)
   const [deslocamentoH, setDeslocamentoH] = useState(0);
@@ -44,6 +45,8 @@ export function App({ repo, inicial, avisoInicial }: Props) {
   const [fichaAberta, setFichaAberta] = useState(false);
 
   const primeiro = useRef(true);
+  // cada abertura monta a gaveta do zero (reabrir durante a animação de fechar não pode reaproveitar o estado antigo)
+  const aberturas = useRef(0);
   const foco = useRef<string[] | null>(null);
   const voltaFoco = useRef<Element | null>(null);
   const pendente = useRef<(() => void) | null>(null);
@@ -67,12 +70,20 @@ export function App({ repo, inicial, avisoInicial }: Props) {
     foco.current = null;
   });
   useEffect(() => { if (avisoInicial) avisar(avisoInicial); }, [avisoInicial, avisar]);
+  // mudanças vindas de outro aparelho e avisos do armazenamento (falha ao gravar na conta)
+  useEffect(() => repo.assinar?.((novo) => setS(novo)), [repo]);
+  useEffect(() => {
+    const ouvir = (e: Event) => avisar((e as CustomEvent<string>).detail);
+    window.addEventListener('panicboard:aviso', ouvir);
+    return () => window.removeEventListener('panicboard:aviso', ouvir);
+  }, [avisar]);
 
   /* ---------- ficha (gaveta) ---------- */
   const abrir = useCallback((alvo: Gaveta) => {
     clearTimeout(timerFicha.current);
     pendente.current?.();
     voltaFoco.current = document.activeElement;
+    aberturas.current++;
     flushSync(() => { setFicha(alvo); setFichaAberta(false); });
     requestAnimationFrame(() => setFichaAberta(true));
     focarDepois(alvo.tipo === 'novo' ? '#f-titulo' : alvo.tipo === 'projetos' && alvo.editando ? '#p-nome' : '.ficha__fechar');
@@ -197,10 +208,10 @@ export function App({ repo, inicial, avisoInicial }: Props) {
         <div className="view" data-view="quadro" hidden={rota.nome !== 'quadro'}>{rota.nome === 'quadro' && <Quadro />}</div>
         <div className="view view--ideias" data-view="ideias" hidden={rota.nome !== 'ideias'}>{rota.nome === 'ideias' && <Ideias />}</div>
       </main>
-      <Rodape />
+      <Rodape conta={conta} />
       <aside className={fichaAberta ? 'gaveta is-aberta' : 'gaveta'} data-gaveta="" role="dialog" aria-modal="false" aria-labelledby="gaveta-h" hidden={!ficha}>
         {ficha && (ficha.tipo === 'projetos'
-          ? <Projetos key={`projetos-${ficha.editando}`} inicial={ficha.editando} depois={ficha.depois} onFechar={fecharFicha} />
+          ? <Projetos key={`projetos-${aberturas.current}`} inicial={ficha.editando} depois={ficha.depois} onFechar={fecharFicha} />
           : <Ficha key={ficha.tipo === 'item' ? ficha.id : 'novo'} alvo={ficha} onFechar={fecharFicha} registrarPendente={(fn) => { pendente.current = fn; }} />)}
       </aside>
       <Tabbar />

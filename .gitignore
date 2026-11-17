@@ -6,3 +6,7 @@ node_modules/
 dist/
 .playwright-mcp/
 *.tsbuildinfo
+
+# chaves do Supabase (cada pessoa tem as suas)
+.env.local
+.env.*.local

@@ -14,6 +14,8 @@ export interface Repositorio {
   salvar(estado: Estado): void;
   /** guarda uma cópia de segurança antes de uma troca grande (ex.: restaurar o exemplo) */
   guardarCopia(estado: Estado, motivo: string): void;
+  /** mudanças feitas em outro aparelho; devolve a função que para de ouvir */
+  assinar?(fn: (estado: Estado) => void): () => void;
 }
 
 export const CHAVE = 'panicboard.v1';

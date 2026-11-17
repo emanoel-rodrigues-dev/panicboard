@@ -1,13 +1,16 @@
 import { useApp } from '../app/contexto';
+import type { Conta } from '../App';
 import { Marca } from './Nav';
 
-export function Rodape() {
+export function Rodape({ conta }: { conta?: Conta }) {
   return (
     <footer className="closing">
       <div className="wrap closing__in">
         <div className="closing__marca">
           <a className="logo" href="#/"><Marca /><span>PanicBoard</span></a>
-          <p>Tudo fica salvo neste navegador.</p>
+          {conta
+            ? <p>{`Salvo na conta ${conta.email}. `}<button className="link" type="button" data-sair="" onClick={conta.sair}>Sair</button></p>
+            : <p>Tudo fica salvo neste navegador.</p>}
         </div>
         <div className="closing__col">
           <h3>Telas</h3>
