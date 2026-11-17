@@ -1,0 +1,103 @@
+# PanicBoard
+
+Um quadro de demandas para quem toca vários projetos ao mesmo tempo. Você vê num olhar onde está o fogo, e quando um prazo aperta o painel reage com um GIF de série.
+
+![Radar: os projetos empilhados, do mais urgente para o mais calmo](docs/prints/radar.png)
+
+## O que ele faz
+
+- **Radar:** os seus projetos do mais urgente para o mais calmo, cada um com o estado do momento (atrasado, prazo apertado, parado, em dia).
+- **Quadro:** as demandas por prazo ou por status, filtradas por projeto. Dentro de cada raia, a prioridade alta vem primeiro.
+- **Ficha:** status, prioridade, prazo, detalhes técnicos, checklist e histórico de cada mudança. Tudo salvo na hora.
+- **Projetos:** cadastre os seus, com nome, sigla e cor. A cor pode vir da lista, de um código hex ou da logo do projeto. As demandas ganham código no estilo do Jira (`PF-14`).
+- **Ideias:** um lugar para anotar o que aparece no meio do dia. Uma ideia vira demanda com um clique.
+- **Motor de reações:** 4 regras de tempo (atrasado, vence em 24 h, parado há 48 h, ciclo entregue), cada uma com o seu GIF. Um relógio simulado deixa ver as regras mudando sem esperar.
+- **Avisos de prazo:** notificação quando uma demanda atrasa ou vence em 24 h, com o app aberto ou instalado.
+- **Instala no celular (PWA)** e abre sem rede. Tem tema claro e escuro, e funciona com teclado e leitor de tela.
+
+| Quadro | Ficha |
+|---|---|
+| ![Quadro por prazo](docs/prints/quadro.png) | ![Ficha de uma demanda atrasada](docs/prints/ficha.png) |
+| **Projetos (tema escuro)** | **Ideias (tema escuro)** |
+| ![Edição de um projeto](docs/prints/projetos-escuro.png) | ![Ideias soltas](docs/prints/ideias-escuro.png) |
+
+<p align="center"><img src="docs/prints/radar-celular.png" alt="Radar no celular" width="300"></p>
+
+## Como funciona
+
+O PanicBoard não é um serviço com cadastro. **Cada pessoa roda a própria cópia.** Há dois jeitos:
+
+1. **Só no navegador** (padrão): sem configurar nada, os dados ficam no `localStorage` do navegador. O app abre com projetos de exemplo.
+2. **Com o seu Supabase:** os dados vão para um banco seu, aparecem em todos os seus aparelhos e sincronizam em tempo real. O login é por link mágico no e-mail, sem senha.
+
+## Rodar na sua máquina
+
+Precisa do Node 20.19 ou mais novo (ou 22.12+).
+
+```bash
+git clone <url-do-seu-fork>
+cd PanicBoard
+npm install
+npm run dev        # abre em http://localhost:5313
+```
+
+Outros comandos:
+
+```bash
+npm test           # testes (Vitest)
+npm run typecheck  # TypeScript
+npm run build      # gera o site estático em dist/
+npm run preview    # serve o dist/ para conferir o build
+```
+
+## Usar com o Supabase
+
+1. Crie um projeto grátis em [supabase.com](https://supabase.com).
+2. Crie as tabelas: no painel, abra **SQL Editor** e rode o arquivo [`supabase/migrations/20261116000000_inicial.sql`](supabase/migrations/20261116000000_inicial.sql). Com a CLI, rode `supabase link` e depois `supabase db push`. As tabelas têm RLS: cada linha só pode ser lida e alterada pelo usuário dono dela.
+3. Em **Authentication → URL Configuration**, coloque o endereço onde o app vai rodar em **Site URL** e também em **Redirect URLs** (por exemplo, `http://localhost:5313` e o endereço do seu site).
+4. Copie o `.env.example` para `.env.local` e preencha com a URL e a chave pública (`anon` ou `publishable`), que ficam em **Project Settings → API**:
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+5. Rode `npm run dev` de novo. O app pede o seu e-mail e manda o link de entrada. No primeiro login, os dados que estavam no navegador vão para a sua conta.
+
+**Deixar só você entrar:** depois do seu primeiro login, desligue o cadastro de novos usuários em **Authentication → Providers → Email** ("Allow new users to sign up"). A chave pública vai junto no código do site, e isso é normal no Supabase: quem protege os dados é o RLS. Ainda assim, desligar o cadastro impede que outras pessoas criem contas no seu banco.
+
+### Supabase local, para desenvolver
+
+Com o Docker rodando:
+
+```bash
+supabase start                 # sobe o banco, a autenticação e o tempo real (API na porta 55321)
+supabase status -o env         # mostra API_URL e PUBLISHABLE_KEY para o .env.local
+```
+
+Os e-mails de login caem no Mailpit local, em http://127.0.0.1:55324.
+
+## Publicar
+
+O build é um site estático (`dist/`) com caminhos relativos. Funciona em qualquer hospedagem estática: Vercel, Netlify, Cloudflare Pages, GitHub Pages ou um servidor seu. Se usar o Supabase, configure as duas variáveis `VITE_SUPABASE_*` na hospedagem antes do build e coloque o endereço do site nas URLs de redirecionamento do passo 3.
+
+## Por dentro
+
+- **React 19 + Vite + TypeScript** (strict), sem biblioteca de componentes. O CSS fica todo em `src/styles.css`.
+- `src/domain/`: as regras, em funções puras e testadas: motor de reações, raias, ações, projetos, alertas e dados de exemplo.
+- `src/data/`: onde o estado mora. A interface `Repositorio` tem duas implementações, a do navegador (`armazenamento.ts`) e a do Supabase (`supabase.ts`, que grava só o que mudou).
+- `src/screens/` e `src/components/`: as telas e as peças delas.
+- `public/sw.js`: o service worker. Ele guarda só os arquivos do próprio site, nunca dados.
+- `PRODUCT.md` e `DESIGN.md`: o que o produto é e as regras visuais.
+
+## Contribuir
+
+Issues e pull requests são bem-vindos.
+
+- Rode `npm test` e `npm run typecheck` antes de abrir o PR.
+- Regra de negócio nova vem com teste, no estilo dos que já existem em `src/domain/*.test.ts`.
+- Mudança visual: siga o `DESIGN.md` e coloque no PR um print de antes e depois.
+- Textos da interface em português do Brasil, curtos e diretos.
+
+## Licença e créditos
+
+[MIT](LICENSE). Os GIFs vêm do [GIPHY](https://giphy.com), com crédito em cada um. Os personagens pertencem às suas obras.
