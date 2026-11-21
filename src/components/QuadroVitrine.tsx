@@ -170,10 +170,10 @@ function ligarParalaxe(quadro: HTMLElement, largo: MediaQueryList, movimentoRedu
 }
 
 /**
- * Escala o quadro por uma altura fixa (faixa + ~3 cartões), para ele não pular quando um cartão muda de raia.
- * Em tela larga, o topo da faixa de projetos fica na altura do topo do formulário (`palco`).
+ * Escala o quadro para caber na tela. Em tela larga, o topo da faixa de projetos fica na altura do topo
+ * do formulário (`palco`) e a altura usada é a maior que o quadro já teve (`alturaMaxima`).
  */
-function encaixar(cena: HTMLElement, quadro: HTMLElement, faixa: HTMLElement, largo: MediaQueryList, palco: HTMLElement | null) {
+function encaixar(cena: HTMLElement, quadro: HTMLElement, faixa: HTMLElement, largo: MediaQueryList, palco: HTMLElement | null, alturaMaxima: number) {
   const larguraLivre = cena.clientWidth - parseFloat(getComputedStyle(cena).paddingRight);
   const larguraQuadro = quadro.offsetWidth;
   quadro.style.transition = 'none';
@@ -183,7 +183,7 @@ function encaixar(cena: HTMLElement, quadro: HTMLElement, faixa: HTMLElement, la
   } else {
     const topo = palco.getBoundingClientRect().top;
     const alturaLivre = cena.getBoundingClientRect().bottom - topo - 24;
-    quadro.style.setProperty('--s', Math.min(1.15, (larguraLivre * 0.98) / larguraQuadro, alturaLivre / (faixa.offsetHeight + 12 + 430)).toFixed(3));
+    quadro.style.setProperty('--s', Math.min(1.15, (larguraLivre * 0.98) / larguraQuadro, alturaLivre / alturaMaxima).toFixed(3));
     // --ty muda a posição medida da faixa: duas passadas de correção bastam para alinhar
     let ty = 0;
     for (let i = 0; i < 2; i++) {
@@ -324,9 +324,15 @@ function criarVitrine(cena: HTMLElement, quadro: HTMLElement, palco: RefObject<H
 
   /* ---------- paralaxe e encaixe na tela ---------- */
   const desligarParalaxe = ligarParalaxe(quadro, largo, movimentoReduzido);
-  const reencaixar = () => encaixar(cena, quadro, faixa, largo, palco.current);
+  // a escala só muda quando o quadro passa da maior altura que já teve: não pula a cada cartão que anda
+  let alturaMaxima = 0;
+  const reencaixar = () => {
+    alturaMaxima = Math.max(alturaMaxima, quadro.offsetHeight);
+    encaixar(cena, quadro, faixa, largo, palco.current, alturaMaxima);
+  };
   const observador = new ResizeObserver(reencaixar);
   observador.observe(cena);
+  observador.observe(quadro);
   if (palco.current) observador.observe(palco.current);
   reencaixar();
   void document.fonts.ready.then(reencaixar);
