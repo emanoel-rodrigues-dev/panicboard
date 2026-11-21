@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Contexto, type AcaoAviso, type App as AppCtx, type Rota } from './app/contexto';
-import { lerRota, useHoraReal, useMedia } from './app/hooks';
+import { lerRota, projetoDaNovaDemanda, useHoraReal, useMedia } from './app/hooks';
 import { useNotificacoes } from './app/notificacoes';
 import { Aviso } from './components/Aviso';
 import { Dica } from './components/Dica';
@@ -102,12 +102,12 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
   const abrirFicha = useCallback((id: string) => abrir({ tipo: 'item', id }), [abrir]);
   const abrirProjetos = useCallback((editando: Editando = null) => abrir({ tipo: 'projetos', editando }), [abrir]);
   /** projetoNovo: o projeto acabou de ser criado e ainda não está no S desta closure */
-  const novaDemanda = useCallback((pid?: string, projetoNovo = false) => {
-    if (projetoNovo && pid) { abrir({ tipo: 'novo', projeto: pid }); return; }
-    const lista = ativos(S.projetos);
-    if (!lista.length) { abrir({ tipo: 'projetos', editando: 'novo', depois: 'demanda' }); avisar('Cadastre um projeto antes da primeira demanda.'); return; }
-    abrir({ tipo: 'novo', projeto: lista.some((p) => p.id === pid) ? pid! : lista[0].id });
-  }, [abrir, avisar, S.projetos]);
+  const novaDemanda = useCallback((projetoNovo?: string) => {
+    const projeto = projetoNovo ?? projetoDaNovaDemanda(S.projetos, rota);
+    if (projeto) { abrir({ tipo: 'novo', projeto }); return; }
+    abrir({ tipo: 'projetos', editando: 'novo', depois: 'demanda' });
+    avisar('Cadastre um projeto antes da primeira demanda.');
+  }, [abrir, avisar, S.projetos, rota]);
   useEffect(() => { document.body.classList.toggle('com-ficha', fichaAberta); }, [fichaAberta]);
   // clique fora fecha a gaveta; o que abre outra gaveta (cartão, Nova demanda, Projetos) e o aviso não contam
   useEffect(() => {

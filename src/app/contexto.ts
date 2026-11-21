@@ -31,8 +31,8 @@ export interface App {
   setFrente: (pid: string) => void;
   setIdeiasFiltro: (f: 'abertas' | 'promovidas') => void;
   abrirFicha: (id: string) => void;
-  /** projetoNovo: abre direto no projeto recém-criado, sem conferir a lista */
-  novaDemanda: (pid?: string, projetoNovo?: boolean) => void;
+  /** abre no projeto do filtro do quadro (ou no primeiro); projetoNovo: direto no projeto recém-criado */
+  novaDemanda: (projetoNovo?: string) => void;
   /** abre a gaveta de projetos; 'novo' já abre o cadastro, um id abre a edição */
   abrirProjetos: (editando?: string | null) => void;
   avancarRelogio: (h: number) => void;

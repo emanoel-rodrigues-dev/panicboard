@@ -100,8 +100,8 @@ function FormProjeto({ p, depois, onVoltar, onFechar }: { p?: Projeto; depois?: 
       atualizar(() => r[0]);
       const id = r[1].id;
       // veio do Nova demanda: segue direto para a demanda, que era o objetivo
-      if (depois === 'demanda') { avisar(`${r[1].nome} criado.`); novaDemanda(id, true); return; }
-      avisar(`${r[1].nome} criado.`, { rotulo: 'Criar demanda', fn: () => novaDemanda(id, true) });
+      if (depois === 'demanda') { avisar(`${r[1].nome} criado.`); novaDemanda(id); return; }
+      avisar(`${r[1].nome} criado.`, { rotulo: 'Criar demanda', fn: () => novaDemanda(id) });
       onFechar();
     }
   };

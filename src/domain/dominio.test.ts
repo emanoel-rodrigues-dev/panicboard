@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { avancarStatus, criarItem, descartarIdeia, editarPasso, excluirItem, mudarCampo, promoverIdeia, removerPasso } from './acoes';
+import { avancarStatus, criarItem, descartarIdeia, editarPasso, excluirItem, marcarPasso, mudarCampo, promoverIdeia, removerPasso } from './acoes';
 import { avaliar, avaliarTodos, estadoItem, PENDENTE } from './motor';
 import { arquivarProjeto, coresDaImagem, criarProjeto, editarProjeto, lerHex, sugerirSigla, tintaPara, validarProjeto } from './projetos';
 import { montarRaias } from './raias';
@@ -164,10 +164,22 @@ describe('extras', () => {
     expect(i.checklist[0]).toEqual({ t: 'Mapear todas as colunas', feito: true });
     expect(i.historico.at(-1)!.texto).toBe('Passo editado: Mapear colunas → Mapear todas as colunas');
     expect(editarPasso(S, 'FN-31', 0, '  ', T)).toBe(S);
-    S = removerPasso(S, 'FN-31', 1, T);
+    S = removerPasso(S, 'FN-31', 1, T)![0];
     i = S.itens.find((x) => x.id === 'FN-31')!;
     expect(i.checklist.map((p) => p.t)).toEqual(['Mapear todas as colunas', 'Conferir duplicados']);
     expect(i.historico.at(-1)!.texto).toBe('Passo removido: Rodar em homologação');
+  });
+
+  it('desfazer a remoção de um passo devolve ele no lugar sem perder o que foi marcado depois', () => {
+    const [S1, desfazer] = removerPasso(exemplo(), 'PF-14', 0, T)!;
+    const S2 = marcarPasso(S1, 'PF-14', 0, true, T + H);
+    const i = desfazer(S2).itens.find((x) => x.id === 'PF-14')!;
+    expect(i.checklist).toEqual([
+      { t: 'Reproduzir com o caso do dia 31', feito: true },
+      { t: 'Corrigir arredondamento', feito: true },
+      { t: 'Teste de regressão', feito: false },
+    ]);
+    expect(i.historico.at(-1)!.texto).toBe('Passo devolvido: Reproduzir com o caso do dia 31');
   });
 
   it('exclui a demanda, solta a ideia promovida e o desfazer devolve tudo', () => {

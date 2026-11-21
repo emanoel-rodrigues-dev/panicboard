@@ -38,7 +38,7 @@ export function Tabbar() {
       <a href="#/" data-rota="radar" aria-current={atual('radar')}><svg className="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17a8.5 8.5 0 0 1 17 0" /><path d="M12 17l4-5" /></svg><span>Radar</span></a>
       <a href="#/quadro" data-rota="quadro" aria-current={atual('quadro')}><svg className="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4.5" width="16" height="15" rx="2.5" /><path d="M9.5 4.5v15M15 4.5v9" /></svg><span>Quadro</span></a>
       <a href="#/ideias" data-rota="ideias" aria-current={atual('ideias')}><svg className="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z" /></svg><span>Ideias</span></a>
-      <button type="button" data-nova="" onClick={() => novaDemanda(rota.nome === 'quadro' && rota.sub !== 'todos' ? rota.sub : undefined)}><svg className="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg><span>Nova</span></button>
+      <button type="button" data-nova="" onClick={() => novaDemanda()}><svg className="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg><span>Nova</span></button>
     </nav>
   );
 }

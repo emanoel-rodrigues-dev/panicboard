@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { ativos } from '../domain/projetos';
+import type { Projeto } from '../domain/tipos';
 import { $, type Rota } from './contexto';
 
 /** Hora real, atualizada a cada minuto e ao voltar para a aba (bug 7: a tela não ficava parada). */
@@ -32,6 +34,13 @@ export function lerRota(): Rota {
     // o projeto é conferido na tela, contra os projetos cadastrados
     sub: sub || 'todos',
   };
+}
+
+/** a nova demanda abre no projeto do filtro do quadro; sem filtro, no primeiro ativo; null sem nenhum ativo */
+export function projetoDaNovaDemanda(projetos: Projeto[], rota: Rota): string | null {
+  const lista = ativos(projetos);
+  const doFiltro = rota.nome === 'quadro' ? lista.find((p) => p.id === rota.sub) : undefined;
+  return (doFiltro ?? lista[0])?.id ?? null;
 }
 
 /**

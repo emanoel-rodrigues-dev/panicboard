@@ -54,7 +54,7 @@ export function Nav({ tema, onTema }: { tema: Tema; onTema: () => void }) {
               <button className="link relogio__reset" type="button" data-restaurar="" onClick={() => { setRelogio(false); restaurarExemplo(); }}>Restaurar dados de exemplo</button>
             </div>
           </div>
-          <button className="btn btn--primary nav__cta" type="button" data-nova="" onClick={() => novaDemanda(rota.nome === 'quadro' && rota.sub !== 'todos' ? rota.sub : undefined)}>
+          <button className="btn btn--primary nav__cta" type="button" data-nova="" onClick={() => novaDemanda()}>
             <svg className="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
             <span>Nova demanda</span>
           </button>

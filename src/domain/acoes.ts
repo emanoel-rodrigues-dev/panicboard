@@ -107,12 +107,26 @@ export function editarPasso(S: Estado, id: string, n: number, texto: string, t: 
   return trocarItem(S, c);
 }
 
-export function removerPasso(S: Estado, id: string, n: number, t: number): Estado {
+/**
+ * Remove o passo e devolve também a função que o recoloca na mesma posição.
+ * O desfazer mexe só nesse passo: o que foi marcado ou editado depois da remoção continua valendo.
+ */
+export function removerPasso(S: Estado, id: string, n: number, t: number): [Estado, (s: Estado) => Estado] | null {
   const i = S.itens.find((x) => x.id === id);
-  if (!i?.checklist[n]) return S;
+  const fora = i?.checklist[n];
+  if (!i || !fora) return null;
   const c: Item = { ...i, checklist: i.checklist.filter((_, k) => k !== n) };
-  registrar(c, `Passo removido: ${i.checklist[n].t}`, t);
-  return trocarItem(S, c);
+  registrar(c, `Passo removido: ${fora.t}`, t);
+  const desfazer = (s: Estado): Estado => ({
+    ...s,
+    itens: s.itens.map((x) => {
+      if (x.id !== id) return x;
+      const checklist = [...x.checklist];
+      checklist.splice(Math.min(n, checklist.length), 0, fora);
+      return { ...x, checklist, historico: [...x.historico, { em: iso(t), texto: `Passo devolvido: ${fora.t}` }] };
+    }),
+  });
+  return [trocarItem(S, c), desfazer];
 }
 
 /**

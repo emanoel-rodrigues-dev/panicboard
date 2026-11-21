@@ -75,9 +75,10 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
     const texto = i.checklist[n].t;
     if (novo) setRascunho((r) => ({ ...r, checklist: r.checklist.filter((_, k) => k !== n) }));
     else {
-      const antes = existente!;
-      atualizar((s) => removerPasso(s, antes.id, n, t));
-      avisar(`Passo removido: ${texto}`, { rotulo: 'Desfazer', fn: () => atualizar((s) => ({ ...s, itens: s.itens.map((x) => (x.id === antes.id ? { ...x, checklist: antes.checklist, historico: [...x.historico, { em: new Date(t).toISOString(), texto: `Passo devolvido: ${texto}` }] } : x)) })) });
+      const r = removerPasso(S, existente!.id, n, t);
+      if (!r) return;
+      atualizar(() => r[0]);
+      avisar(`Passo removido: ${texto}`, { rotulo: 'Desfazer', fn: () => atualizar(r[1]) });
     }
     $('#f-ck')?.focus();
   };
@@ -86,7 +87,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
     const r = excluirItem(S, existente.id);
     if (!r) return;
     onFechar();
-    atualizar((s) => excluirItem(s, existente.id)?.[0] ?? s);
+    atualizar(() => r[0]);
     avisar(`${existente.id} excluída.`, { rotulo: 'Desfazer', fn: () => atualizar(r[1]) });
   };
   const addPasso = () => {
