@@ -2,7 +2,7 @@
 // para juntar várias edições seguidas, e recebe as mudanças feitas em outro aparelho (Realtime).
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Estado } from '../domain/tipos';
-import { lerEstado, repositorioLocal, type Repositorio } from './armazenamento';
+import { armazemLocal, lerEstado, repositorioLocal, type Repositorio } from './armazenamento';
 import { diferenca, estadoParaLinhas, linhasParaEstado, linhasVazias, type Linhas } from './linhas';
 
 const TABELAS = ['projetos', 'demandas', 'ideias'] as const;
@@ -79,7 +79,7 @@ export function repositorioSupabase(db: SupabaseClient, { onErro }: OpcoesSupaba
         return { estado };
       }
       // conta nova: leva para o banco o que já existe neste navegador (ou o exemplo)
-      const { estado } = lerEstado(localStorageOuNulo(), Date.now());
+      const { estado } = lerEstado(armazemLocal(), Date.now());
       await gravar(estado);
       return { estado, aviso: 'Conta nova: levei para ela os dados que estavam neste navegador.' };
     },
@@ -113,8 +113,4 @@ export function repositorioSupabase(db: SupabaseClient, { onErro }: OpcoesSupaba
       return () => { clearTimeout(t); void db.removeChannel(canal); };
     },
   };
-}
-
-function localStorageOuNulo() {
-  try { return window.localStorage; } catch { return null; }
 }

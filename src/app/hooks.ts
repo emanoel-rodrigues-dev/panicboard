@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Rota } from './contexto';
+import { $, type Rota } from './contexto';
 
 /** Hora real, atualizada a cada minuto e ao voltar para a aba (bug 7: a tela não ficava parada). */
 export function useHoraReal(intervalo = 60e3): number {
@@ -32,4 +32,24 @@ export function lerRota(): Rota {
     // o projeto é conferido na tela, contra os projetos cadastrados
     sub: sub || 'todos',
   };
+}
+
+/**
+ * Enquanto `aberto`: Esc fecha e devolve o foco para `voltarPara`, e um clique fora de `dentro` fecha.
+ * O Esc é ouvido na captura e não segue adiante, para não fechar junto a gaveta por trás.
+ */
+export function useFecharAoSair(aberto: boolean, setAberto: (v: boolean) => void, dentro: string, voltarPara: string) {
+  useEffect(() => {
+    if (!aberto) return;
+    const tecla = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      setAberto(false);
+      $(voltarPara)?.focus();
+    };
+    const clique = (e: MouseEvent) => { if (!(e.target as Element).closest(dentro)) setAberto(false); };
+    document.addEventListener('keydown', tecla, true);
+    document.addEventListener('click', clique);
+    return () => { document.removeEventListener('keydown', tecla, true); document.removeEventListener('click', clique); };
+  }, [aberto, setAberto, dentro, voltarPara]);
 }

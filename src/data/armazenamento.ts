@@ -49,7 +49,7 @@ export function lerEstado(armazem: Armazem | null, agora: number): Carga {
   return { estado: montarExemplo(agora), aviso: `Os dados salvos estavam com defeito. Guardei uma cópia em ${CHAVE}.defeito e abri o exemplo.` };
 }
 
-function armazemLocal(): Armazem | null {
+export function armazemLocal(): Armazem | null {
   try { return window.localStorage; } catch { return null; }
 }
 

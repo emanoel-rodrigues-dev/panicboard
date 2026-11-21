@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { useApp } from '../app/contexto';
 import { Gif } from '../components/Gif';
 import { Ico, vars } from '../components/Icone';
+import { girarGif } from '../domain/acoes';
 import { REACOES } from '../domain/reacoes';
 import { ABERTO, avaliarTodos, estadoItem, porAtualizacao, porPrazo, prazoTexto, reacao, REGRAS, type Avaliacao } from '../domain/motor';
 import { COR_NEUTRA, proj } from '../domain/projetos';
@@ -211,7 +212,7 @@ function Reacoes({ av }: { av: Avaliacao[] }) {
                   <p className="regra__quem">{quem.length
                     ? <>Agora em {quem.map((a, j) => <Fragment key={a.pid}>{j > 0 && ', '}<a className="link" href={`#/quadro/${a.pid}`}>{proj(S.projetos, a.pid).curto}</a></Fragment>)}</>
                     : <span className="muted">Nenhum projeto nesta regra agora.</span>}</p>
-                  <button className="link regra__trocar" type="button" data-girar={k} onClick={() => atualizar((s) => ({ ...s, girar: { ...s.girar, [k]: (s.girar[k] || 0) + 1 } }))}>{`Trocar o GIF (${n + 1} de ${lista.length})`}</button>
+                  <button className="link regra__trocar" type="button" data-girar={k} onClick={() => atualizar((s) => girarGif(s, k))}>{`Trocar o GIF (${n + 1} de ${lista.length})`}</button>
                 </div>
               </article>
             );

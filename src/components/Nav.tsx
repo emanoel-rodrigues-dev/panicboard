@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { $, useApp } from '../app/contexto';
+import { useState } from 'react';
+import { useApp } from '../app/contexto';
+import { useFecharAoSair } from '../app/hooks';
 import { fmtData } from '../domain/tempo';
 
 const MARCA = <svg className="mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18a9 9 0 0 1 18 0" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /><circle cx="12" cy="18" r="2.6" fill="#ffd43b" /></svg>;
@@ -18,14 +19,7 @@ export function Nav({ tema, onTema }: { tema: Tema; onTema: () => void }) {
   const [relogio, setRelogio] = useState(false);
   const [nome, , proxNome] = NOMES[tema];
 
-  useEffect(() => {
-    if (!relogio) return;
-    const tecla = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setRelogio(false); $('[data-relogio-btn]')?.focus(); } };
-    const clique = (e: MouseEvent) => { if (!(e.target as Element).closest('.relogio')) setRelogio(false); };
-    document.addEventListener('keydown', tecla, true);
-    document.addEventListener('click', clique);
-    return () => { document.removeEventListener('keydown', tecla, true); document.removeEventListener('click', clique); };
-  }, [relogio]);
+  useFecharAoSair(relogio, setRelogio, '.relogio', '[data-relogio-btn]');
 
   const avancar = (h: number) => { setRelogio(false); avancarRelogio(h); };
   const link = (r: string, href: string, texto: string) => <a href={href} data-rota={r} aria-current={rota.nome === r ? 'page' : undefined}>{texto}</a>;

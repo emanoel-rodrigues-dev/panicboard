@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { $, useApp } from '../app/contexto';
+import { useFecharAoSair } from '../app/hooks';
 import { adicionarPasso, criarItem, editarPasso, excluirItem, marcarPasso, mudarCampo, removerPasso, type Campo, type NovosDados } from '../domain/acoes';
 import { estadoItem, pedeAtencao, prazoTexto, PRIO, reacao, REGRAS, STATUS, TODOS_STATUS } from '../domain/motor';
 import { ativos, proj } from '../domain/projetos';
@@ -45,15 +46,8 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
     return () => registrarPendente(null);
   });
 
-  // calendário: Esc e clique fora fecham sem fechar a ficha
-  useEffect(() => {
-    if (!calAberto) return;
-    const tecla = (e: globalThis.KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setCalAberto(false); $('[data-prazo-abrir]')?.focus(); } };
-    const clique = (e: MouseEvent) => { if (!(e.target as Element).closest('[data-prazo]')) setCalAberto(false); };
-    document.addEventListener('keydown', tecla, true);
-    document.addEventListener('click', clique);
-    return () => { document.removeEventListener('keydown', tecla, true); document.removeEventListener('click', clique); };
-  }, [calAberto]);
+  // calendário: Esc e clique fora fecham só ele, não a ficha
+  useFecharAoSair(calAberto, setCalAberto, '[data-prazo]', '[data-prazo-abrir]');
 
   const mudar = (nome: 'status' | 'prioridade' | 'projeto', valor: string) => {
     if (novo) setRascunho((r) => ({ ...r, [nome]: valor }));
