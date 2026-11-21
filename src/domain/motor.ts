@@ -6,12 +6,21 @@ import type { Estado, EstadoItem, Item, Prioridade, Projeto, Reacao, Regra, Stat
 
 export const STATUS: Record<Status, string> = { backlog: 'Backlog', fazer: 'A fazer', fazendo: 'Fazendo', revisao: 'Em revisão', feito: 'Feito' };
 export const FLUXO: Status[] = ['fazer', 'fazendo', 'revisao', 'feito'];
+export const TODOS_STATUS: Status[] = ['backlog', ...FLUXO];
 export const PRIO: Record<Prioridade, string> = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };
 
 /** Em execução: conta para as regras do motor (backlog ainda não é compromisso). */
 export const ABERTO = (i: Item) => i.status === 'fazer' || i.status === 'fazendo' || i.status === 'revisao';
 /** Ainda não entregue: é o que aparece e é contado no quadro, inclusive backlog. */
 export const PENDENTE = (i: Item) => i.status !== 'feito';
+export const pendentesDoProjeto = (itens: Item[], pid: string) => itens.filter((i) => i.projeto === pid && PENDENTE(i));
+
+/** a partir daqui (até o prazo) a entrega está apertada */
+export const PRAZO_APERTADO_MS = 24 * H;
+/** sem nada se mexer por este tempo, o trabalho em andamento conta como parado */
+export const PARADO_MS = 48 * H;
+/** o que não tem prazo vai depois de qualquer data na ordenação */
+const SEM_PRAZO = Number.MAX_SAFE_INTEGER;
 
 export const REGRAS: Record<Regra, { nome: string; regra: string; ordem: number }> = {
   atrasado: { nome: 'Atraso crítico', regra: 'O prazo passou e a demanda não foi concluída.', ordem: 0 },
@@ -21,14 +30,19 @@ export const REGRAS: Record<Regra, { nome: string; regra: string; ordem: number 
 };
 
 /** ordenação por prazo, sem prazo vai para o fim */
-export const porPrazo = (a: Item, b: Item) => (Date.parse(a.prazo ?? '') || 9e15) - (Date.parse(b.prazo ?? '') || 9e15);
+export const porPrazo = (a: Item, b: Item) => (Date.parse(a.prazo ?? '') || SEM_PRAZO) - (Date.parse(b.prazo ?? '') || SEM_PRAZO);
+/** a atualizada por último primeiro */
+export const porAtualizacao = (a: Item, b: Item) => Date.parse(b.atualizado) - Date.parse(a.atualizado);
+
+/** estados que pedem atenção: são os que mostram o GIF da reação na demanda */
+export const pedeAtencao = (e: EstadoItem): e is 'atrasado' | 'prazo_apertado' => e === 'atrasado' || e === 'prazo_apertado';
 
 export function estadoItem(i: Item, t: number): EstadoItem {
   if (i.status === 'feito') return 'feito';
   if (!i.prazo || !ABERTO(i)) return 'normal';
   const p = Date.parse(i.prazo);
   if (p < t) return 'atrasado';
-  if (p - t <= 24 * H) return 'prazo_apertado';
+  if (p - t <= PRAZO_APERTADO_MS) return 'prazo_apertado';
   return 'normal';
 }
 
@@ -66,7 +80,7 @@ export function avaliar(todos: Item[], pid: string, t: number): Avaliacao {
   const desde = (i: Item) => dur(Date.parse(i.prazo!) - t);
   if (atrasados.length) return { ...base, regra: 'atrasado', estado: atrasados.length > 1 ? `${atrasados.length} atrasadas, a pior há ${desde(atrasados[0])}` : `Atrasada há ${desde(atrasados[0])}` };
   if (apertados.length) return { ...base, regra: 'prazo_apertado', estado: `Entrega em ${desde(apertados[0])}` };
-  if (andamento.length && parado >= 48 * H) return { ...base, regra: 'abandonado', estado: `Parado há ${dur(parado)}` };
+  if (andamento.length && parado >= PARADO_MS) return { ...base, regra: 'abandonado', estado: `Parado há ${dur(parado)}` };
   if (!abertos.length && feitos.length) return { ...base, regra: 'em_dia', estado: 'Ciclo entregue' };
   return { ...base, regra: null, estado: abertos.length ? 'Andando no ritmo' : 'Sem demandas' };
 }

@@ -3,8 +3,8 @@ import { useApp } from '../app/contexto';
 import { Gif } from '../components/Gif';
 import { Ico, vars } from '../components/Icone';
 import { REACOES } from '../domain/reacoes';
-import { ABERTO, avaliarTodos, estadoItem, prazoTexto, reacao, REGRAS, type Avaliacao } from '../domain/motor';
-import { proj } from '../domain/projetos';
+import { ABERTO, avaliarTodos, estadoItem, porAtualizacao, porPrazo, prazoTexto, reacao, REGRAS, type Avaliacao } from '../domain/motor';
+import { COR_NEUTRA, proj } from '../domain/projetos';
 import { dur, fmtData } from '../domain/tempo';
 import type { Item, Projeto, Regra } from '../domain/tipos';
 
@@ -21,7 +21,7 @@ export function Radar() {
   const { S, t } = useApp();
   const av = avaliarTodos(S.itens, S.projetos, t);
   const noRadar = new Set(av.map((a) => a.pid));
-  const prox = S.itens.filter((i) => noRadar.has(i.projeto) && ABERTO(i) && i.prazo && Date.parse(i.prazo) >= t).sort((a, b) => Date.parse(a.prazo!) - Date.parse(b.prazo!))[0];
+  const prox = S.itens.filter((i) => noRadar.has(i.projeto) && ABERTO(i) && i.prazo && Date.parse(i.prazo) >= t).sort(porPrazo)[0];
   return (
     <>
       <Hero av={av} />
@@ -135,7 +135,7 @@ function PalcoVazio() {
   const { abrirProjetos } = useApp();
   return (
     <div className="hero__palco" data-palco="">
-      <div className="camada" ref={(el) => el?.setAttribute('style', '--i:0;--pc:#5c6370;--pt:#ffffff')}>
+      <div className="camada" ref={(el) => el?.setAttribute('style', `--i:0;--pc:${COR_NEUTRA.cor};--pt:${COR_NEUTRA.tinta}`)}>
         <button className="camada__alvo" type="button" aria-label="Cadastrar o primeiro projeto" onClick={() => abrirProjetos('novo')} />
         <div className="camada__cab"><span className="camada__nome">Seu primeiro projeto</span><span className="camada__estado"><Ico n="normal" />Aguardando</span></div>
         <div className="camada__corpo"><div className="camada__calma"><strong>Cadastre um projeto</strong><span>Ele aparece aqui, com o GIF da regra do momento.</span></div></div>
@@ -152,8 +152,8 @@ function ItemCanal({ i, prazo, est }: { i: Item; prazo: string; est: string }) {
 function Canal({ a }: { a: Avaliacao }) {
   const { S, t } = useApp();
   const p = proj(S.projetos, a.pid);
-  const proximas = a.abertos.slice().sort((x, y) => (Date.parse(x.prazo ?? '') || 9e15) - (Date.parse(y.prazo ?? '') || 9e15)).slice(0, 3);
-  const entregues = a.feitos.slice().sort((x, y) => Date.parse(y.atualizado) - Date.parse(x.atualizado)).slice(0, 3);
+  const proximas = a.abertos.slice().sort(porPrazo).slice(0, 3);
+  const entregues = a.feitos.slice().sort(porAtualizacao).slice(0, 3);
   return (
     <article className="canal" style={vars({ '--pc': p.cor, '--pt': p.tinta })}>
       <header className="canal__cab"><h3>{p.nome}</h3><span className="canal__sigla">{p.sigla}</span></header>

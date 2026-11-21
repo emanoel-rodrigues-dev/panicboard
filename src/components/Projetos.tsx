@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type MouseEvent } from 'react';
 import { useApp } from '../app/contexto';
-import { PENDENTE } from '../domain/motor';
+import { pendentesDoProjeto } from '../domain/motor';
 import { arquivarProjeto, CORES, coresDaImagem, criarProjeto, editarProjeto, lerHex, limparSigla, rgbParaHex, sugerirSigla, tintaPara, validarProjeto, type DadosProjeto, type ErrosProjeto } from '../domain/projetos';
 import type { Projeto } from '../domain/tipos';
 import { Ico, vars } from './Icone';
@@ -34,7 +34,7 @@ function ListaProjetos({ onEditar, onFechar }: { onEditar: (id: string) => void;
   const ativos = S.projetos.filter((p) => !p.arquivado);
   const arquivados = S.projetos.filter((p) => p.arquivado);
   const botao = (p: Projeto) => {
-    const n = S.itens.filter((i) => i.projeto === p.id && PENDENTE(i)).length;
+    const n = pendentesDoProjeto(S.itens, p.id).length;
     return (
       <button key={p.id} type="button" className="filtro" data-projeto={p.id} style={vars({ '--pc': p.cor })} aria-label={`Editar ${p.nome}, sigla ${p.sigla}, ${n} ${n === 1 ? 'demanda pendente' : 'demandas pendentes'}`} onClick={() => onEditar(p.id)}>
         <span className="ptag__dot" /><span>{p.nome}</span><span className="filtro__n">{p.sigla}</span>
@@ -72,7 +72,7 @@ function FormProjeto({ p, depois, onVoltar, onFechar }: { p?: Projeto; depois?: 
   const [erros, setErros] = useState<ErrosProjeto>({});
   // "Outra cor": a cor digitada em hex, fora da lista
   const [outra, setOutra] = useState(() => !!p && !CORES.some((c) => c.cor === p.cor));
-  const pendentes = p ? S.itens.filter((i) => i.projeto === p.id && PENDENTE(i)).length : 0;
+  const pendentes = p ? pendentesDoProjeto(S.itens, p.id).length : 0;
 
   const mudar = (campo: keyof DadosProjeto, v: string) => {
     setD((x) => {

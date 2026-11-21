@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { $, useApp } from '../app/contexto';
 import { adicionarPasso, criarItem, editarPasso, excluirItem, marcarPasso, mudarCampo, removerPasso, type Campo, type NovosDados } from '../domain/acoes';
-import { estadoItem, FLUXO, prazoTexto, PRIO, reacao, REGRAS, STATUS } from '../domain/motor';
+import { estadoItem, pedeAtencao, prazoTexto, PRIO, reacao, REGRAS, STATUS, TODOS_STATUS } from '../domain/motor';
 import { ativos, proj } from '../domain/projetos';
 import { fmtCurta, H, isoParaLocal, paraLocal, prazoRotulo } from '../domain/tempo';
-import type { Item, Prioridade, Status } from '../domain/tipos';
+import type { Item, Prioridade } from '../domain/tipos';
 import { Calendario } from './Calendario';
 import { Gif } from './Gif';
 import { Ico, TagProjeto, vars } from './Icone';
@@ -17,8 +17,6 @@ interface Props {
   /** a ficha entrega aqui a função que salva o que ainda está sendo digitado (chamada antes de fechar) */
   registrarPendente: (fn: (() => void) | null) => void;
 }
-
-const STATUS_FICHA: Status[] = ['backlog', ...FLUXO];
 
 export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
   const { S, t, atualizar, avisar, abrirFicha } = useApp();
@@ -116,7 +114,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
   };
 
   const est = existente ? estadoItem(existente, t) : 'normal';
-  const r = existente && (est === 'atrasado' || est === 'prazo_apertado') ? reacao(est, S.girar, existente.id) : null;
+  const r = existente && pedeAtencao(est) ? reacao(est, S.girar, existente.id) : null;
 
   return (
     <form className="ficha" data-ficha="" noValidate style={vars({ '--pc': p.cor })} onSubmit={criar}>
@@ -125,7 +123,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
         <button className="ficha__fechar" type="button" data-fechar="" aria-label="Fechar a ficha" onClick={onFechar}><Ico n="fechar" /></button>
       </div>
       <h2 id="gaveta-h" className="ficha__h">{existente ? existente.titulo : 'O que precisa ser feito?'}</h2>
-      {r && existente && (est === 'atrasado' || est === 'prazo_apertado') && (
+      {r && existente && pedeAtencao(est) && (
         <div className={`ficha__reacao est--${est}`}><Gif key={r.id} r={r} chave={`ficha-${existente.id}`} classe="gif--mini" /><p><strong>{`${prazoTexto(existente, t)}.`}</strong>{` ${REGRAS[est].regra}`}</p></div>
       )}
       <div className="campo">
@@ -140,7 +138,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
         </div></fieldset>
       )}
       <fieldset className="campo"><legend>Status</legend><div className="seg seg--status">
-        {STATUS_FICHA.map((s) => <label key={s}><input type="radio" name="status" value={s} checked={i.status === s} onChange={() => mudar('status', s)} /><span>{STATUS[s]}</span></label>)}
+        {TODOS_STATUS.map((s) => <label key={s}><input type="radio" name="status" value={s} checked={i.status === s} onChange={() => mudar('status', s)} /><span>{STATUS[s]}</span></label>)}
       </div></fieldset>
       <fieldset className="campo"><legend>Prioridade</legend><div className="opcoes">
         {(Object.keys(PRIO) as Prioridade[]).map((k) => <label key={k} className={`opc opc--prio prio--${k}`}><input type="radio" name="prioridade" value={k} checked={i.prioridade === k} onChange={() => mudar('prioridade', k)} /><span><Ico n={k} />{PRIO[k]}</span></label>)}

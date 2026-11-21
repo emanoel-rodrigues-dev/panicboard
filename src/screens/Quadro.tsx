@@ -1,7 +1,7 @@
 import { useApp } from '../app/contexto';
 import { Ico, TagProjeto, vars } from '../components/Icone';
 import { proximoStatus } from '../domain/acoes';
-import { avaliar, estadoItem, PENDENTE, prazoTexto, PRIO, REGRAS, STATUS } from '../domain/motor';
+import { avaliar, estadoItem, pedeAtencao, PENDENTE, pendentesDoProjeto, prazoTexto, PRIO, REGRAS, STATUS } from '../domain/motor';
 import { ativos, proj } from '../domain/projetos';
 import { montarRaias } from '../domain/raias';
 import type { Item } from '../domain/tipos';
@@ -28,7 +28,7 @@ export function Quadro() {
         </div>
         <div className="filtros" role="group" aria-label="Filtrar por projeto" data-filtros="">
           {filtros.map((p) => {
-            const n = visiveis.filter((i) => (p.id === 'todos' || i.projeto === p.id) && PENDENTE(i)).length;
+            const n = (p.id === 'todos' ? visiveis.filter(PENDENTE) : pendentesDoProjeto(visiveis, p.id)).length;
             const regra = p.id !== 'todos' ? avaliar(S.itens, p.id, t).regra : null;
             return (
               <a key={p.id} className="filtro" href={`#/quadro${p.id === 'todos' ? '' : `/${p.id}`}`} style={vars({ '--pc': p.cor })} aria-current={filtro === p.id ? 'page' : undefined}>
@@ -70,7 +70,7 @@ function Cartao({ i }: { i: Item }) {
       <button className="cartao__abrir" type="button" data-abrir={i.id} onClick={() => abrirFicha(i.id)}>
         <span className="cartao__topo"><span className="cartao__id">{i.id}</span><TagProjeto p={p} /><span className={`cartao__prio prio--${i.prioridade}`} data-tip={`Prioridade ${PRIO[i.prioridade].toLowerCase()}`}><Ico n={i.prioridade} /><span className="sr">{`Prioridade ${PRIO[i.prioridade]}`}</span></span></span>
         <span className="cartao__tit">{i.titulo}</span>
-        <span className="cartao__pe"><span className={`cartao__prazo est-t--${est}`}>{(est === 'atrasado' || est === 'prazo_apertado') && <Ico n={est} />}{prazoTexto(i, t)}</span>{modo === 'prazo' && <span className="cartao__status">{STATUS[i.status]}</span>}{i.checklist.length > 0 && <span className="cartao__ck">{`${i.checklist.filter((c) => c.feito).length}/${i.checklist.length}`}</span>}</span>
+        <span className="cartao__pe"><span className={`cartao__prazo est-t--${est}`}>{pedeAtencao(est) && <Ico n={est} />}{prazoTexto(i, t)}</span>{modo === 'prazo' && <span className="cartao__status">{STATUS[i.status]}</span>}{i.checklist.length > 0 && <span className="cartao__ck">{`${i.checklist.filter((c) => c.feito).length}/${i.checklist.length}`}</span>}</span>
       </button>
       {prox && <button className="cartao__avancar" type="button" data-avancar-item={i.id} aria-label={`Mover ${i.id} para ${STATUS[prox]}`} data-tip={`Mover para ${STATUS[prox]}`} onClick={() => { focarDepois([`[data-avancar-item="${i.id}"]`, `[data-view="quadro"] [data-abrir="${i.id}"]`]); avancarItem(i.id); }}><Ico n={prox === 'feito' ? 'feito' : 'seta'} /></button>}
     </article>

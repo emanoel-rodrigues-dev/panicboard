@@ -1,12 +1,13 @@
 // Dados de exemplo. Horários em horas relativas ao momento em que o exemplo é carregado,
 // montados para que cada projeto comece numa regra do motor de reações.
+import { corDaLista } from './projetos';
 import type { Estado, Item, Prioridade, Projeto, Status } from './tipos';
 
 export const PROJETOS: Projeto[] = [
-  { id: 'funil', sigla: 'FN', nome: 'Funil CRM', curto: 'Funil', cor: '#61b771', tinta: '#0e2413' },
-  { id: 'folha', sigla: 'PF', nome: 'Ponto & Folha', curto: 'Folha', cor: '#3b6fa3', tinta: '#ffffff' },
-  { id: 'chales', sigla: 'CH', nome: 'Chalés Serra Azul', curto: 'Chalés', cor: '#ff8000', tinta: '#241200' },
-  { id: 'estudos', sigla: 'ES', nome: 'Estudos & Inglês', curto: 'Estudos', cor: '#8b5cf6', tinta: '#ffffff' },
+  { id: 'funil', sigla: 'FN', nome: 'Funil CRM', curto: 'Funil', ...corDaLista('Verde') },
+  { id: 'folha', sigla: 'PF', nome: 'Ponto & Folha', curto: 'Folha', ...corDaLista('Azul') },
+  { id: 'chales', sigla: 'CH', nome: 'Chalés Serra Azul', curto: 'Chalés', ...corDaLista('Laranja') },
+  { id: 'estudos', sigla: 'ES', nome: 'Estudos & Inglês', curto: 'Estudos', ...corDaLista('Roxo') },
 ];
 
 // status: backlog | fazer | fazendo | revisao | feito ; prioridade: alta | media | baixa

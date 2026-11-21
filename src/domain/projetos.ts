@@ -13,7 +13,15 @@ export const CORES: { nome: string; cor: string; tinta: string }[] = [
   { nome: 'Grafite', cor: '#5c6370', tinta: '#ffffff' },
 ];
 
-const REMOVIDO: Projeto = { id: '', sigla: '?', nome: 'Projeto removido', curto: 'Removido', cor: '#5c6370', tinta: '#ffffff' };
+/** cor e tinta de uma cor da lista, pelo nome */
+export function corDaLista(nome: string): { cor: string; tinta: string } {
+  const { cor, tinta } = CORES.find((c) => c.nome === nome) ?? CORES[0];
+  return { cor, tinta };
+}
+/** para o que não é de nenhum projeto (projeto removido, lugar vazio do radar) */
+export const COR_NEUTRA = corDaLista('Grafite');
+
+const REMOVIDO: Projeto = { id: '', sigla: '?', nome: 'Projeto removido', curto: 'Removido', ...COR_NEUTRA };
 
 /** projeto pelo id; se não existir mais, um marcador neutro em vez de quebrar a tela */
 export const proj = (lista: Projeto[], id: string): Projeto => lista.find((p) => p.id === id) ?? { ...REMOVIDO, id };
