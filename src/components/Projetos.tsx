@@ -148,9 +148,17 @@ function FormProjeto({ p, depois, onVoltar, onFechar }: { p?: Projeto; depois?: 
         </div>
       </div>
       <fieldset className="campo"><legend>Cor</legend><div className="opcoes">
-        {CORES.map((c) => <label key={c.cor} className="opc opc--proj" style={vars({ '--pc': c.cor, '--pt': c.tinta })}><input type="radio" name="cor" value={c.cor} checked={!outra && d.cor === c.cor} onChange={() => escolherLista(c.cor)} /><span><i className="ptag__dot" aria-hidden="true" />{c.nome}</span></label>)}
+        {CORES.map((c) => (
+          <label key={c.cor} className="opc opc--proj" style={vars({ '--pc': c.cor, '--pt': c.tinta })}>
+            <input type="radio" name="cor" value={c.cor} checked={!outra && d.cor === c.cor} onChange={() => escolherLista(c.cor)} />
+            <span><i className="ptag__dot" aria-hidden="true" />{c.nome}</span>
+          </label>
+        ))}
         {/* a própria opção vira a amostra: pintada com a cor digitada e com a tinta calculada */}
-        <label className="opc opc--proj" style={vars(outra && hex ? { '--pc': hex, '--pt': tintaPara(hex) } : { '--pc': 'var(--muted)', '--pt': 'var(--surface)' })}><input type="radio" name="cor" value="outra" data-cor-outra="" checked={outra} onChange={escolherOutra} /><span><i className="ptag__dot" aria-hidden="true" />{outra && hex ? `Outra: ${hex}` : 'Outra cor'}</span></label>
+        <label className="opc opc--proj" style={vars(outra && hex ? { '--pc': hex, '--pt': tintaPara(hex) } : { '--pc': 'var(--muted)', '--pt': 'var(--surface)' })}>
+          <input type="radio" name="cor" value="outra" data-cor-outra="" checked={outra} onChange={escolherOutra} />
+          <span><i className="ptag__dot" aria-hidden="true" />{outra && hex ? `Outra: ${hex}` : 'Outra cor'}</span>
+        </label>
       </div></fieldset>
       {outra && (
         <div className="campo">

@@ -128,7 +128,12 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
       </div>
       {novo && (
         <fieldset className="campo"><legend>Projeto</legend><div className="opcoes">
-          {ativos(S.projetos).map((x) => <label key={x.id} className="opc opc--proj" style={vars({ '--pc': x.cor, '--pt': x.tinta })}><input type="radio" name="projeto" value={x.id} checked={x.id === i.projeto} onChange={() => mudar('projeto', x.id)} /><span><i className="ptag__dot" aria-hidden="true" />{x.curto}</span></label>)}
+          {ativos(S.projetos).map((x) => (
+            <label key={x.id} className="opc opc--proj" style={vars({ '--pc': x.cor, '--pt': x.tinta })}>
+              <input type="radio" name="projeto" value={x.id} checked={x.id === i.projeto} onChange={() => mudar('projeto', x.id)} />
+              <span><i className="ptag__dot" aria-hidden="true" />{x.curto}</span>
+            </label>
+          ))}
         </div></fieldset>
       )}
       <fieldset className="campo"><legend>Status</legend><div className="seg seg--status">

@@ -68,11 +68,27 @@ function Cartao({ i }: { i: Item }) {
   return (
     <article className={`cartao est-c--${est}`} style={vars({ '--pc': p.cor })}>
       <button className="cartao__abrir" type="button" data-abrir={i.id} onClick={() => abrirFicha(i.id)}>
-        <span className="cartao__topo"><span className="cartao__id">{i.id}</span><TagProjeto p={p} /><span className={`cartao__prio prio--${i.prioridade}`} data-tip={`Prioridade ${PRIO[i.prioridade].toLowerCase()}`}><Ico nome={i.prioridade} /><span className="sr">{`Prioridade ${PRIO[i.prioridade]}`}</span></span></span>
+        <span className="cartao__topo">
+          <span className="cartao__id">{i.id}</span>
+          <TagProjeto p={p} />
+          <span className={`cartao__prio prio--${i.prioridade}`} data-tip={`Prioridade ${PRIO[i.prioridade].toLowerCase()}`}>
+            <Ico nome={i.prioridade} />
+            <span className="sr">{`Prioridade ${PRIO[i.prioridade]}`}</span>
+          </span>
+        </span>
         <span className="cartao__tit">{i.titulo}</span>
-        <span className="cartao__pe"><span className={`cartao__prazo est-t--${est}`}>{pedeAtencao(est) && <Ico nome={est} />}{prazoTexto(i, t)}</span>{modo === 'prazo' && <span className="cartao__status">{STATUS[i.status]}</span>}{i.checklist.length > 0 && <span className="cartao__ck">{`${i.checklist.filter((c) => c.feito).length}/${i.checklist.length}`}</span>}</span>
+        <span className="cartao__pe">
+          <span className={`cartao__prazo est-t--${est}`}>{pedeAtencao(est) && <Ico nome={est} />}{prazoTexto(i, t)}</span>
+          {modo === 'prazo' && <span className="cartao__status">{STATUS[i.status]}</span>}
+          {i.checklist.length > 0 && <span className="cartao__ck">{`${i.checklist.filter((c) => c.feito).length}/${i.checklist.length}`}</span>}
+        </span>
       </button>
-      {prox && <button className="cartao__avancar" type="button" data-avancar-item={i.id} aria-label={`Mover ${i.id} para ${STATUS[prox]}`} data-tip={`Mover para ${STATUS[prox]}`} onClick={() => { focarDepois([`[data-avancar-item="${i.id}"]`, `[data-view="quadro"] [data-abrir="${i.id}"]`]); avancarItem(i.id); }}><Ico nome={prox === 'feito' ? 'feito' : 'seta'} /></button>}
+      {prox && (
+        <button className="cartao__avancar" type="button" data-avancar-item={i.id} aria-label={`Mover ${i.id} para ${STATUS[prox]}`} data-tip={`Mover para ${STATUS[prox]}`}
+          onClick={() => { focarDepois([`[data-avancar-item="${i.id}"]`, `[data-view="quadro"] [data-abrir="${i.id}"]`]); avancarItem(i.id); }}>
+          <Ico nome={prox === 'feito' ? 'feito' : 'seta'} />
+        </button>
+      )}
     </article>
   );
 }
