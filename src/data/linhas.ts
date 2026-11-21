@@ -1,4 +1,4 @@
-// Estado do app <-> linhas das tabelas do Supabase. Funções puras (testadas em linhas.test.ts).
+// Estado do app <-> linhas das tabelas do Supabase. Funções puras.
 import type { Estado, Ideia, Item, Projeto } from '../domain/tipos';
 
 export interface LinhaProjeto extends Omit<Projeto, 'arquivado'> { arquivado: boolean; ordem: number }

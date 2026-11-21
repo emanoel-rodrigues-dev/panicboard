@@ -3,7 +3,7 @@ import { ativos } from '../domain/projetos';
 import type { Projeto } from '../domain/tipos';
 import { $, type Rota } from './contexto';
 
-/** Hora real, atualizada a cada minuto e ao voltar para a aba (bug 7: a tela não ficava parada). */
+/** Hora real, atualizada a cada minuto e ao voltar para a aba, para os prazos da tela não ficarem parados. */
 export function useHoraReal(intervalo = 60e3): number {
   const [agora, setAgora] = useState(() => Date.now());
   useEffect(() => {

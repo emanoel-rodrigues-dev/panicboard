@@ -29,7 +29,7 @@ type Gaveta = AlvoFicha | { tipo: 'projetos'; editando: Editando; depois?: 'dema
 
 export function App({ repo, inicial, avisoInicial, conta }: Props) {
   const [S, setS] = useState(inicial);
-  // relógio simulado: só na memória da sessão, nunca salvo junto com os dados (bug 6)
+  // relógio simulado: só na memória da sessão, nunca salvo junto com os dados (senão o app abriria no futuro)
   const [deslocamentoH, setDeslocamentoH] = useState(0);
   const real = useHoraReal();
   const t = real + deslocamentoH * H;
@@ -55,7 +55,7 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
   const timerAviso = useRef<ReturnType<typeof setTimeout>>(undefined);
   const timerFicha = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // salva a cada mudança do estado (menos no primeiro render)
+  // salva a cada mudança; o primeiro render é o estado que acabou de ser carregado, não há o que regravar
   useEffect(() => { if (primeiro.current) { primeiro.current = false; return; } repo.salvar(S); }, [S, repo]);
 
   const atualizar = useCallback((fn: (s: Estado) => Estado) => setS(fn), []);
@@ -86,13 +86,14 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
     pendente.current?.();
     voltaFoco.current = document.activeElement;
     aberturas.current++;
+    // monta a gaveta fechada e abre no quadro seguinte: a transição de entrada acontece mesmo ao trocar de uma gaveta para outra
     flushSync(() => { setFicha(alvo); setFichaAberta(false); });
     requestAnimationFrame(() => setFichaAberta(true));
     focarDepois(alvo.tipo === 'novo' ? '#f-titulo' : alvo.tipo === 'projetos' && alvo.editando ? '#p-nome' : '.ficha__fechar');
   }, [focarDepois]);
   const fecharFicha = useCallback(() => {
     if (!ficha) return;
-    pendente.current?.(); // salva o que estava sendo digitado antes de fechar (bug 1)
+    pendente.current?.(); // salva o que estava sendo digitado antes de fechar
     setFichaAberta(false);
     clearTimeout(timerFicha.current);
     timerFicha.current = setTimeout(() => setFicha(null), reduz ? 0 : 220);
@@ -132,7 +133,7 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
 
   const restaurarExemplo = useCallback(() => {
     const antes = S;
-    // cópia de segurança no armazenamento: os dados não dependem só do botão Desfazer (bug 5)
+    // cópia de segurança no armazenamento: os dados não dependem só do botão Desfazer
     repo.guardarCopia(antes, 'antes-de-restaurar');
     setS(montarExemplo(Date.now())); setDeslocamentoH(0); setFrente(null);
     avisar('Dados de exemplo restaurados.', { rotulo: 'Desfazer', fn: () => setS(antes) });
@@ -186,6 +187,7 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
       const k = e.key.toLowerCase();
       if (k === 'n') { e.preventDefault(); novaDemanda(); }
       if (k === 't') { e.preventDefault(); trocarTema(); }
+      // o campo só existe depois que a tela de Ideias monta (a troca de rota pode passar por uma View Transition)
       if (k === 'i') { e.preventDefault(); if (lerRota().nome !== 'ideias') location.hash = '#/ideias'; setTimeout(() => document.querySelector<HTMLElement>('#nova-ideia')?.focus(), 60); }
     };
     document.addEventListener('keydown', tecla);

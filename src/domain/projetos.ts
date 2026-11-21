@@ -130,6 +130,7 @@ export function coresDaImagem(px: Uint8ClampedArray, max = 5): string[] {
     if (px[i + 3] < 128) continue;
     const [r, g, b] = [px[i], px[i + 1], px[i + 2]];
     if (Math.min(r, g, b) > 235) continue;
+    // agrupa pelos 4 bits mais altos de cada canal: cores que só diferem nos tons finos caem no mesmo grupo
     const k = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
     const x = grupos.get(k) ?? { n: 0, r: 0, g: 0, b: 0 };
     x.n++; x.r += r; x.g += g; x.b += b;

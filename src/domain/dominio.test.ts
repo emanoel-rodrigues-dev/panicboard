@@ -35,7 +35,7 @@ describe('motor de reações com os dados de exemplo', () => {
   });
 });
 
-describe('bug 2: demanda em backlog no quadro por prazo', () => {
+describe('demanda em backlog no quadro por prazo', () => {
   it('aparece numa raia de prazo e conta como pendente', () => {
     const S = mudarCampo(exemplo(), 'PF-14', 'status', 'backlog', T);
     const raias = montarRaias(S.itens.filter((i) => i.projeto === 'folha'), 'prazo', T);
@@ -52,7 +52,7 @@ describe('bug 2: demanda em backlog no quadro por prazo', () => {
   });
 });
 
-describe('bug 3: #tags e apóstrofo', () => {
+describe('#tags e apóstrofo', () => {
   it("mantém o apóstrofo como texto e separa a tag", () => {
     expect(trechosComTags("Revisar don't e won't #ingles")).toEqual([
       { tipo: 'texto', valor: "Revisar don't e won't " },

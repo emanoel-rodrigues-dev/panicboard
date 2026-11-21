@@ -1,4 +1,4 @@
-// Onde o estado mora. Hoje: localStorage. Depois: Supabase, com a mesma interface.
+// Onde o estado mora: no navegador (localStorage). O Supabase (supabase.ts) segue a mesma interface Repositorio.
 import { projetosDasDemandas } from '../domain/projetos';
 import { montarExemplo } from '../domain/seed';
 import type { Estado } from '../domain/tipos';

@@ -1,4 +1,4 @@
-// Catálogo copiado de ../reacoes.json (GIPHY, gerado 2026-11-15). Mostrado por hotlink.
+// Catálogo de GIFs por regra (GIPHY, montado em 2026-11-15). As imagens são carregadas direto do GIPHY, com crédito.
 import type { Reacao, Regra } from './tipos';
 
 export const REACOES: Record<Regra, Reacao[]> = {

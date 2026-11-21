@@ -10,7 +10,6 @@ export const PROJETOS: Projeto[] = [
   { id: 'estudos', sigla: 'ES', nome: 'Estudos & Inglês', curto: 'Estudos', ...corDaLista('Roxo') },
 ];
 
-// status: backlog | fazer | fazendo | revisao | feito ; prioridade: alta | media | baixa
 // prazo/atualizado/criado: horas relativas (negativo = passado)
 type Linha = [string, number, string, Status, Prioridade, number | null, number, number, string, [string, boolean][]];
 const DEMANDAS: Linha[] = [

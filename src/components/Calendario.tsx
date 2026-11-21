@@ -33,6 +33,7 @@ export function Calendario({ valor, t, onEscolher }: Props) {
     const b = new Date(t); b.setHours(18, 0, 0, 0);
     if (k === 'amanha') b.setDate(b.getDate() + 1);
     if (k === '3d') b.setDate(b.getDate() + 3);
+    // dias até a próxima segunda (getDay 1); numa segunda, a da semana que vem
     if (k === 'seg') b.setDate(b.getDate() + (((8 - b.getDay()) % 7) || 7));
     onEscolher(b, true);
   };

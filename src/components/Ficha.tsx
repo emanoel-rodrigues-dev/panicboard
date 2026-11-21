@@ -27,7 +27,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
   const i: NovosDados & Partial<Item> = existente ?? rascunho;
   const p = proj(S.projetos, i.projeto);
 
-  // texto em edição: salva ao sair do campo e também antes de fechar (bug 1)
+  // texto em edição: salva ao sair do campo e também antes de fechar
   const [titulo, setTitulo] = useState(existente?.titulo ?? '');
   const [descricao, setDescricao] = useState(existente?.descricao ?? '');
   const [erroTitulo, setErroTitulo] = useState(false);

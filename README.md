@@ -97,6 +97,8 @@ Issues e pull requests são bem-vindos.
 - Regra de negócio nova vem com teste, no estilo dos que já existem em `src/domain/*.test.ts`.
 - Mudança visual: siga o `DESIGN.md` e coloque no PR um print de antes e depois.
 - Textos da interface em português do Brasil, curtos e diretos.
+- Nomes que se explicam, em português, como o resto do código.
+- Comentário só quando o código sozinho não conta: o porquê de uma decisão, uma regra de negócio, um contorno de navegador. Não descreva o que a linha já diz.
 
 ## Licença e créditos
 

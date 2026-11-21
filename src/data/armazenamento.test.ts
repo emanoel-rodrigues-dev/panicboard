@@ -7,7 +7,7 @@ const armazem = (inicial: Record<string, string> = {}) => {
   return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v), m };
 };
 
-describe('bug 4: dados salvos com defeito', () => {
+describe('dados salvos com defeito', () => {
   it('guarda a cópia do que estava salvo e avisa, em vez de perder em silêncio', () => {
     const a = armazem({ [CHAVE]: '{"versao":1,"itens":[' });
     const carga = lerEstado(a, T);
@@ -26,7 +26,7 @@ describe('bug 4: dados salvos com defeito', () => {
     expect(lerEstado(armazem(), T).aviso).toBeUndefined();
   });
 
-  it('bug 6: estado antigo com relógio simulado salvo é lido sem o deslocamento', () => {
+  it('estado antigo com relógio simulado salvo é lido sem o deslocamento', () => {
     const a = armazem({ [CHAVE]: JSON.stringify({ versao: 1, itens: [], ideias: [], seq: {}, seqIdeia: 0, girar: {}, deslocamentoH: 72 }) });
     expect('deslocamentoH' in lerEstado(a, T).estado).toBe(false);
   });

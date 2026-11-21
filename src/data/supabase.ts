@@ -91,6 +91,7 @@ export function repositorioSupabase(db: SupabaseClient, { onErro }: OpcoesSupaba
     guardarCopia: local.guardarCopia,
     assinar(fn) {
       let t: ReturnType<typeof setTimeout> | undefined;
+      // uma gravação gera um aviso do Realtime por linha: espera 400 ms e lê tudo uma vez só
       const recarregar = () => {
         clearTimeout(t);
         t = setTimeout(async () => {

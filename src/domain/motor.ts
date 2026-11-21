@@ -26,6 +26,7 @@ export const REGRAS: Record<Regra, { nome: string; regra: string; ordem: number 
   atrasado: { nome: 'Atraso crítico', regra: 'O prazo passou e a demanda não foi concluída.', ordem: 0 },
   prazo_apertado: { nome: 'Prazo apertado', regra: 'Uma entrega vence nas próximas 24 horas.', ordem: 1 },
   abandonado: { nome: 'Projeto parado', regra: 'Há trabalho em andamento, mas nada se mexe há mais de 48 horas.', ordem: 2 },
+  // depois dos projetos sem regra (ordem 3, em ordemRegra): quem fechou o ciclo é o que menos pede atenção
   em_dia: { nome: 'Tudo em dia', regra: 'Todas as demandas do ciclo foram entregues.', ordem: 4 },
 };
 
@@ -85,6 +86,7 @@ export function avaliar(todos: Item[], pid: string, t: number): Avaliacao {
   return { ...base, regra: null, estado: abertos.length ? 'Andando no ritmo' : 'Sem demandas' };
 }
 
+/** sem regra disparada fica entre o projeto parado (2) e o em dia (4) */
 export const ordemRegra = (r: Regra | null) => (r ? REGRAS[r].ordem : 3);
 
 /** os projetos ativos avaliados, do mais urgente para o mais calmo */
