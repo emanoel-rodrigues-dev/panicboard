@@ -63,7 +63,10 @@ function Hero({ av }: { av: Avaliacao[] }) {
     const id = setTimeout(() => setEntrando(false), 1500);
     return () => clearTimeout(id);
   }, [entrando]);
-  const partes = av.map((a) => frase(a, proj(S.projetos, a.pid), t));
+  // até 4 projetos: um por um; com mais, só os que pedem atenção e um resumo dos calmos
+  const calmos = av.length > CAMADAS ? av.filter((a) => a.regra === null) : [];
+  const partes = av.filter((a) => !calmos.includes(a)).map((a) => frase(a, proj(S.projetos, a.pid), t));
+  const resto = calmos.length === 1 ? ' O outro segue no ritmo, nos cartões abaixo.' : calmos.length ? ` Os outros ${calmos.length} seguem no ritmo, nos cartões abaixo.` : '';
   return (
     <section className={entrando ? 'hero is-in' : 'hero'} data-enter="" aria-labelledby="hero-h">
       <div className="hero__chao" aria-hidden="true" />
@@ -72,9 +75,9 @@ function Hero({ av }: { av: Avaliacao[] }) {
           <p className="hero__aovivo"><span className="pontoaovivo" aria-hidden="true" /><span data-hero-hora="">{`${deslocamentoH ? 'Relógio simulado' : 'Ao vivo'} · ${fmtData.format(t)}`}</span></p>
           {entrando
             ? <h1 id="hero-h" tabIndex={-1} aria-label={TITULO}>{TITULO.split(' ').map((w, n) => <Fragment key={n}>{n > 0 && ' '}<span className="palavra" aria-hidden="true"><span style={vars({ '--w': n })}>{w}</span></span></Fragment>)}</h1>
-            : <h1 id="hero-h" tabIndex={-1}>{TITULO}</h1>}
+            : <h1 id="hero-h" tabIndex={-1} style={av.length ? undefined : { hyphens: 'manual' }}>{TITULO}</h1>}
           <p className="hero__lead" data-hero-lead="">{av.length
-            ? `Agora: ${juntar(partes)}. Clique num projeto para ver as demandas.`
+            ? `Agora: ${partes.length ? `${juntar(partes)}.` : 'tudo no ritmo.'}${resto} Clique num projeto para ver as demandas.`
             : 'Cadastre um projeto e o PanicBoard passa a vigiar os prazos das demandas dele.'}</p>
           <div className="btn-row">
             {av.length
@@ -83,7 +86,9 @@ function Hero({ av }: { av: Avaliacao[] }) {
             <a className="btn btn--secondary" href="#/ideias">Anotar uma ideia</a>
           </div>
         </div>
-        {av.length > 0 && <Palco av={av.slice(0, CAMADAS)} />}
+        {av.length > 0
+          ? <Palco av={[...av.filter((a) => a.itens.length), ...av.filter((a) => !a.itens.length)].slice(0, CAMADAS)} />
+          : <PalcoVazio />}
       </div>
       <button className="pausa" type="button" data-pausa="" aria-pressed={pausado} aria-label={pausado ? 'Retomar o movimento da tela' : 'Pausar o movimento da tela'} onClick={alternarPausa}>
         <svg className="ico ico--pausa" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12" /></svg>
@@ -121,6 +126,20 @@ function Palco({ av }: { av: Avaliacao[] }) {
           </div>
         );
       }).reverse()}
+    </div>
+  );
+}
+
+/** sem projetos: uma camada só, que leva ao cadastro (mesmo desenho das camadas do palco) */
+function PalcoVazio() {
+  const { abrirProjetos } = useApp();
+  return (
+    <div className="hero__palco" data-palco="">
+      <div className="camada" ref={(el) => el?.setAttribute('style', '--i:0;--pc:#5c6370;--pt:#ffffff')}>
+        <button className="camada__alvo" type="button" aria-label="Cadastrar o primeiro projeto" onClick={() => abrirProjetos('novo')} />
+        <div className="camada__cab"><span className="camada__nome">Seu primeiro projeto</span><span className="camada__estado"><Ico n="normal" />Aguardando</span></div>
+        <div className="camada__corpo"><div className="camada__calma"><strong>Cadastre um projeto</strong><span>Ele aparece aqui, com o GIF da regra do momento.</span></div></div>
+      </div>
     </div>
   );
 }

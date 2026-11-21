@@ -13,7 +13,7 @@ export function Rodape({ conta, avisos, onAvisos }: { conta?: Conta; avisos: Avi
             ? <p>{`Salvo na conta ${conta.email}. `}<button className="link" type="button" data-sair="" onClick={conta.sair}>Sair</button></p>
             : <p>Tudo fica salvo neste navegador.</p>}
           {avisos.suporte && (avisos.bloqueado && !avisos.ligado
-            ? <p>Notificações bloqueadas neste navegador.</p>
+            ? <p>Notificações bloqueadas neste navegador. Libere nas configurações do site para receber os avisos de prazo.</p>
             : <p><button className="link" type="button" data-avisos="" aria-pressed={avisos.ligado} onClick={onAvisos}>{avisos.ligado ? 'Avisos de prazo ligados · Desligar' : 'Avisar quando um prazo apertar'}</button></p>)}
         </div>
         <div className="closing__col">

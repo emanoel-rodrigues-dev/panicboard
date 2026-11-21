@@ -523,3 +523,9 @@ main { padding-top: var(--nav); }
 .ck li > label { flex: 1; min-width: 0; }
 .ck__acao { flex: none; width: 36px; height: 36px; border-radius: 50%; border: 0; background: none; color: var(--muted); display: grid; place-items: center; cursor: pointer; }
 .ck__acao:hover { background: var(--surface-2); color: var(--ink); }
+
+/* celular estreito: os 5 status cabem numa linha e o crédito do GIF pequeno cobre menos a imagem */
+@media (max-width: 420px) {
+  .seg--status label span { padding: 0 7px; font-size: 13px; }
+  .ficha__reacao .gif__credito { font-size: 11px; min-height: 24px; padding: 2px 6px; top: 4px; right: 4px; }
+}

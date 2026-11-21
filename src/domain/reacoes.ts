@@ -47,6 +47,15 @@ export const REACOES: Record<Regra, Reacao[]> = {
    "gif": "https://media.giphy.com/media/0SkN7AAANbSqY2YUWJ/giphy.gif",
    "still": "https://media.giphy.com/media/0SkN7AAANbSqY2YUWJ/giphy_s.gif",
    "pagina": "https://giphy.com/gifs/0SkN7AAANbSqY2YUWJ"
+  },
+  {
+   "id": "3o7TKFtloXXPVspOWk",
+   "personagem": "Chris (Tyler James Williams) de touca, esperando no frio",
+   "obra": "Todo Mundo Odeia o Chris",
+   "fala_curta_pt": "Fiquei aqui no frio esperando você voltar pro projeto.",
+   "gif": "https://media.giphy.com/media/3o7TKFtloXXPVspOWk/giphy.gif",
+   "still": "https://media.giphy.com/media/3o7TKFtloXXPVspOWk/giphy_s.gif",
+   "pagina": "https://giphy.com/gifs/3o7TKFtloXXPVspOWk"
   }
  ],
  "prazo_apertado": [
@@ -94,6 +103,15 @@ export const REACOES: Record<Regra, Reacao[]> = {
    "gif": "https://media.giphy.com/media/WUm82cVmX7evraJKym/giphy.gif",
    "still": "https://media.giphy.com/media/WUm82cVmX7evraJKym/giphy_s.gif",
    "pagina": "https://giphy.com/gifs/WUm82cVmX7evraJKym"
+  },
+  {
+   "id": "3o7TKEC76qbnenwI9O",
+   "personagem": "Julius (Terry Crews) olhando desconfiado",
+   "obra": "Todo Mundo Odeia o Chris",
+   "fala_curta_pt": "Isso vai ficar pronto a tempo ou vai me custar caro?",
+   "gif": "https://media.giphy.com/media/3o7TKEC76qbnenwI9O/giphy.gif",
+   "still": "https://media.giphy.com/media/3o7TKEC76qbnenwI9O/giphy_s.gif",
+   "pagina": "https://giphy.com/gifs/3o7TKEC76qbnenwI9O"
   }
  ],
  "atrasado": [
@@ -141,6 +159,15 @@ export const REACOES: Record<Regra, Reacao[]> = {
    "gif": "https://media.giphy.com/media/UaJAJPoSf1KYo/giphy.gif",
    "still": "https://media.giphy.com/media/UaJAJPoSf1KYo/giphy_s.gif",
    "pagina": "https://giphy.com/gifs/UaJAJPoSf1KYo"
+  },
+  {
+   "id": "pQr5kPeXvqFzrEL7yR",
+   "personagem": "Chris (Tyler James Williams) em pânico",
+   "obra": "Todo Mundo Odeia o Chris",
+   "fala_curta_pt": "Atrasou?! E agora, quem vai explicar?",
+   "gif": "https://media.giphy.com/media/pQr5kPeXvqFzrEL7yR/giphy.gif",
+   "still": "https://media.giphy.com/media/pQr5kPeXvqFzrEL7yR/giphy_s.gif",
+   "pagina": "https://giphy.com/gifs/pQr5kPeXvqFzrEL7yR"
   }
  ],
  "em_dia": [
@@ -197,6 +224,15 @@ export const REACOES: Record<Regra, Reacao[]> = {
    "gif": "https://media.giphy.com/media/KAKgpCLJDnzeU/giphy.gif",
    "still": "https://media.giphy.com/media/KAKgpCLJDnzeU/giphy_s.gif",
    "pagina": "https://giphy.com/gifs/KAKgpCLJDnzeU"
+  },
+  {
+   "id": "l0MYA7M8MQ1hMd9tu",
+   "personagem": "Julius e Rochelle comemorando na porta",
+   "obra": "Todo Mundo Odeia o Chris",
+   "fala_curta_pt": "Entregou tudo? Isso merece comemoração.",
+   "gif": "https://media.giphy.com/media/l0MYA7M8MQ1hMd9tu/giphy.gif",
+   "still": "https://media.giphy.com/media/l0MYA7M8MQ1hMd9tu/giphy_s.gif",
+   "pagina": "https://giphy.com/gifs/l0MYA7M8MQ1hMd9tu"
   }
  ]
 };

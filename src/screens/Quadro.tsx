@@ -39,7 +39,13 @@ export function Quadro() {
           })}
           <button className="filtro" type="button" data-abrir-projetos="" onClick={() => abrirProjetos()}><Ico n="editar" /><span>Projetos</span></button>
         </div>
-        <div className="raias" data-raias="">
+        {lista.length === 0 && (
+          <div className="ideias__vazio" data-quadro-vazio="">
+            <p>Nenhum projeto ativo. As demandas aparecem aqui depois que você cadastrar um.</p>
+            <div className="btn-row"><button className="btn btn--primary" type="button" onClick={() => abrirProjetos('novo')}>Cadastrar projeto</button></div>
+          </div>
+        )}
+        <div className="raias" data-raias="" hidden={lista.length === 0}>
           {raias.map((r) => (
             <section key={r.id} className="raia" aria-labelledby={`raia-${r.id}`}>
               <h2 className="raia__h" id={`raia-${r.id}`}>{r.est && <Ico n={r.est} c={`est-t--${r.est}`} />}<span>{r.nome}</span><span className="raia__n">{r.itens.length}</span></h2>
