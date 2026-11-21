@@ -55,7 +55,7 @@ export function Calendario({ valor, t, onEscolher }: Props) {
         <strong>{fmtMes.format(mes)}</strong>
         <button type="button" className="cal__nav" data-prazo-mes="1" aria-label="Próximo mês" onClick={() => setMes(new Date(mes.getFullYear(), mes.getMonth() + 1, 1))}><Ico n="seta" /></button>
       </div>
-      <div className="cal__grade" role="grid">
+      <div className="cal__grade">
         {SEMANA.map((x, n) => <span key={`s${n}`} className="cal__sem" aria-hidden="true">{x}</span>)}
         {dias.map((d) => (
           <button key={d.toDateString()} type="button" className={`cal__dia${d.getMonth() !== mes.getMonth() ? ' is-fora' : ''}${mesmo(d, hoje) ? ' is-hoje' : ''}`}
