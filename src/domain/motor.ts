@@ -10,10 +10,10 @@ export const TODOS_STATUS: Status[] = ['backlog', ...FLUXO];
 export const PRIO: Record<Prioridade, string> = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };
 
 /** Em execução: conta para as regras do motor (backlog ainda não é compromisso). */
-export const ABERTO = (i: Item) => i.status === 'fazer' || i.status === 'fazendo' || i.status === 'revisao';
+export const estaAberta = (i: Item) => i.status === 'fazer' || i.status === 'fazendo' || i.status === 'revisao';
 /** Ainda não entregue: é o que aparece e é contado no quadro, inclusive backlog. */
-export const PENDENTE = (i: Item) => i.status !== 'feito';
-export const pendentesDoProjeto = (itens: Item[], pid: string) => itens.filter((i) => i.projeto === pid && PENDENTE(i));
+export const estaPendente = (i: Item) => i.status !== 'feito';
+export const pendentesDoProjeto = (itens: Item[], pid: string) => itens.filter((i) => i.projeto === pid && estaPendente(i));
 
 /** a partir daqui (até o prazo) a entrega está apertada */
 export const PRAZO_APERTADO_MS = 24 * H;
@@ -39,7 +39,7 @@ export const pedeAtencao = (e: EstadoItem): e is 'atrasado' | 'prazo_apertado' =
 
 export function estadoItem(i: Item, t: number): EstadoItem {
   if (i.status === 'feito') return 'feito';
-  if (!i.prazo || !ABERTO(i)) return 'normal';
+  if (!i.prazo || !estaAberta(i)) return 'normal';
   const p = Date.parse(i.prazo);
   if (p < t) return 'atrasado';
   if (p - t <= PRAZO_APERTADO_MS) return 'prazo_apertado';
@@ -69,7 +69,7 @@ export interface Avaliacao {
 
 export function avaliar(todos: Item[], pid: string, t: number): Avaliacao {
   const itens = todos.filter((i) => i.projeto === pid);
-  const abertos = itens.filter(ABERTO);
+  const abertos = itens.filter(estaAberta);
   const atrasados = abertos.filter((i) => estadoItem(i, t) === 'atrasado').sort(porPrazo);
   const apertados = abertos.filter((i) => estadoItem(i, t) === 'prazo_apertado').sort(porPrazo);
   const andamento = itens.filter((i) => i.status === 'fazendo' || i.status === 'revisao');

@@ -1,6 +1,6 @@
 // Quais demandas merecem uma notificação agora: entraram em "prazo apertado" ou "atrasada".
 // Cada aviso tem uma chave (demanda + estado + prazo): mudar o prazo gera um aviso novo, repetir não.
-import { ABERTO, estadoItem, pedeAtencao } from './motor';
+import { estaAberta, estadoItem, pedeAtencao } from './motor';
 import type { Item } from './tipos';
 
 export interface Alerta { chave: string; item: Item; estado: 'atrasado' | 'prazo_apertado' }
@@ -8,7 +8,7 @@ export interface Alerta { chave: string; item: Item; estado: 'atrasado' | 'prazo
 export function alertasNovos(itens: Item[], projetosAtivos: Set<string>, t: number, avisados: Set<string>): Alerta[] {
   const out: Alerta[] = [];
   for (const i of itens) {
-    if (!ABERTO(i) || !projetosAtivos.has(i.projeto)) continue;
+    if (!estaAberta(i) || !projetosAtivos.has(i.projeto)) continue;
     const estado = estadoItem(i, t);
     if (!pedeAtencao(estado)) continue;
     const chave = `${i.id}|${estado}|${i.prazo}`;

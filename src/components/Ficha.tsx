@@ -32,8 +32,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
   const [descricao, setDescricao] = useState(existente?.descricao ?? '');
   const [erroTitulo, setErroTitulo] = useState(false);
   const [passo, setPasso] = useState('');
-  // passo do checklist em edição: índice e texto
-  const [editando, setEditando] = useState<{ n: number; t: string } | null>(null);
+  const [editando, setEditando] = useState<{ indice: number; texto: string } | null>(null);
   const [calAberto, setCalAberto] = useState(false);
   const textos = useRef({ titulo, descricao });
   textos.current = { titulo, descricao };
@@ -65,7 +64,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
   };
   const salvarPasso = () => {
     if (!editando) return;
-    const { n, t: txt } = editando;
+    const { indice: n, texto: txt } = editando;
     if (novo) { if (txt.trim()) setRascunho((r) => ({ ...r, checklist: r.checklist.map((c, k) => (k === n ? { ...c, t: txt.trim() } : c)) })); }
     else atualizar((s) => editarPasso(s, existente!.id, n, txt, t));
     setEditando(null);
@@ -115,7 +114,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
     <form className="ficha" data-ficha="" noValidate style={vars({ '--pc': p.cor })} onSubmit={criar}>
       <div className="ficha__cab">
         <p className="ficha__id">{existente ? <>{`${existente.id} · `}<TagProjeto p={p} /></> : 'Nova demanda'}</p>
-        <button className="ficha__fechar" type="button" data-fechar="" aria-label="Fechar a ficha" onClick={onFechar}><Ico n="fechar" /></button>
+        <button className="ficha__fechar" type="button" data-fechar="" aria-label="Fechar a ficha" onClick={onFechar}><Ico nome="fechar" /></button>
       </div>
       <h2 id="gaveta-h" className="ficha__h">{existente ? existente.titulo : 'O que precisa ser feito?'}</h2>
       {r && existente && pedeAtencao(est) && (
@@ -136,12 +135,12 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
         {TODOS_STATUS.map((s) => <label key={s}><input type="radio" name="status" value={s} checked={i.status === s} onChange={() => mudar('status', s)} /><span>{STATUS[s]}</span></label>)}
       </div></fieldset>
       <fieldset className="campo"><legend>Prioridade</legend><div className="opcoes">
-        {(Object.keys(PRIO) as Prioridade[]).map((k) => <label key={k} className={`opc opc--prio prio--${k}`}><input type="radio" name="prioridade" value={k} checked={i.prioridade === k} onChange={() => mudar('prioridade', k)} /><span><Ico n={k} />{PRIO[k]}</span></label>)}
+        {(Object.keys(PRIO) as Prioridade[]).map((k) => <label key={k} className={`opc opc--prio prio--${k}`}><input type="radio" name="prioridade" value={k} checked={i.prioridade === k} onChange={() => mudar('prioridade', k)} /><span><Ico nome={k} />{PRIO[k]}</span></label>)}
       </div></fieldset>
       <div className="campo prazo" data-prazo="">
         <span className="campo__rot" id="f-prazo-rot">Prazo</span>
         <button type="button" className="prazo__btn" data-prazo-abrir="" aria-expanded={calAberto} aria-controls="prazo-pop" aria-labelledby="f-prazo-rot f-prazo-txt" onClick={() => setCalAberto((v) => !v)}>
-          <Ico n="calendario" /><span id="f-prazo-txt">{prazoRotulo(prazoLocal, t)}</span>
+          <Ico nome="calendario" /><span id="f-prazo-txt">{prazoRotulo(prazoLocal, t)}</span>
         </button>
         <input type="hidden" name="prazo" id="f-prazo" value={prazoLocal} />
         <div className="prazo__pop" id="prazo-pop" role="dialog" aria-label="Escolher prazo" hidden={!calAberto}>
@@ -153,17 +152,17 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
         <textarea id="f-desc" name="descricao" rows={5} value={descricao} onChange={(e) => setDescricao(e.target.value)} onBlur={() => salvarCampo('descricao', descricao)} />
       </div>
       <fieldset className="campo"><legend>Checklist</legend>
-        <ul className="ck">{i.checklist.map((c, n) => (editando?.n === n
+        <ul className="ck">{i.checklist.map((c, n) => (editando?.indice === n
           ? <li key={n} className="ck__novo">
               <label className="sr" htmlFor="f-ck-ed">{`Editar o passo ${c.t}`}</label>
-              <input id="f-ck-ed" autoFocus autoComplete="off" value={editando.t} onChange={(e) => setEditando({ n, t: e.target.value })}
+              <input id="f-ck-ed" autoFocus autoComplete="off" value={editando.texto} onChange={(e) => setEditando({ indice: n, texto: e.target.value })}
                 onKeyDown={(e: KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); salvarPasso(); } if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setEditando(null); } }} />
               <button className="btn btn--secondary" type="button" onClick={salvarPasso}>Salvar</button>
             </li>
           : <li key={n}>
               <label><input type="checkbox" data-ck={n} checked={c.feito} onChange={(e) => marcar(n, e.target.checked)} /><span>{c.t}</span></label>
-              <button className="ck__acao" type="button" data-ck-editar={n} aria-label={`Editar o passo ${c.t}`} data-tip="Editar" onClick={() => setEditando({ n, t: c.t })}><Ico n="editar" /></button>
-              <button className="ck__acao" type="button" data-ck-remover={n} aria-label={`Remover o passo ${c.t}`} data-tip="Remover" onClick={() => tirarPasso(n)}><Ico n="lixo" /></button>
+              <button className="ck__acao" type="button" data-ck-editar={n} aria-label={`Editar o passo ${c.t}`} data-tip="Editar" onClick={() => setEditando({ indice: n, texto: c.t })}><Ico nome="editar" /></button>
+              <button className="ck__acao" type="button" data-ck-remover={n} aria-label={`Remover o passo ${c.t}`} data-tip="Remover" onClick={() => tirarPasso(n)}><Ico nome="lixo" /></button>
             </li>))}</ul>
         <div className="ck__novo">
           <label className="sr" htmlFor="f-ck">Novo passo</label>

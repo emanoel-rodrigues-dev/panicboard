@@ -1,7 +1,7 @@
 import { useApp } from '../app/contexto';
 import { Ico, TagProjeto, vars } from '../components/Icone';
 import { proximoStatus } from '../domain/acoes';
-import { avaliar, estadoItem, pedeAtencao, PENDENTE, pendentesDoProjeto, prazoTexto, PRIO, REGRAS, STATUS } from '../domain/motor';
+import { avaliar, estadoItem, pedeAtencao, estaPendente, pendentesDoProjeto, prazoTexto, PRIO, REGRAS, STATUS } from '../domain/motor';
 import { ativos, proj } from '../domain/projetos';
 import { montarRaias } from '../domain/raias';
 import type { Item } from '../domain/tipos';
@@ -28,16 +28,16 @@ export function Quadro() {
         </div>
         <div className="filtros" role="group" aria-label="Filtrar por projeto" data-filtros="">
           {filtros.map((p) => {
-            const n = (p.id === 'todos' ? visiveis.filter(PENDENTE) : pendentesDoProjeto(visiveis, p.id)).length;
+            const n = (p.id === 'todos' ? visiveis.filter(estaPendente) : pendentesDoProjeto(visiveis, p.id)).length;
             const regra = p.id !== 'todos' ? avaliar(S.itens, p.id, t).regra : null;
             return (
               <a key={p.id} className="filtro" href={`#/quadro${p.id === 'todos' ? '' : `/${p.id}`}`} style={vars({ '--pc': p.cor })} aria-current={filtro === p.id ? 'page' : undefined}>
                 {p.id !== 'todos' && <span className="ptag__dot" />}<span>{p.curto}</span><span className="filtro__n">{n}</span>
-                {regra && <span className={`filtro__est est--${regra}`} data-tip={REGRAS[regra].nome}><Ico n={regra} /></span>}
+                {regra && <span className={`filtro__est est--${regra}`} data-tip={REGRAS[regra].nome}><Ico nome={regra} /></span>}
               </a>
             );
           })}
-          <button className="filtro" type="button" data-abrir-projetos="" onClick={() => abrirProjetos()}><Ico n="editar" /><span>Projetos</span></button>
+          <button className="filtro" type="button" data-abrir-projetos="" onClick={() => abrirProjetos()}><Ico nome="editar" /><span>Projetos</span></button>
         </div>
         {lista.length === 0 && (
           <div className="ideias__vazio" data-quadro-vazio="">
@@ -48,7 +48,7 @@ export function Quadro() {
         <div className="raias" data-raias="" hidden={lista.length === 0}>
           {raias.map((r) => (
             <section key={r.id} className="raia" aria-labelledby={`raia-${r.id}`}>
-              <h2 className="raia__h" id={`raia-${r.id}`}>{r.est && <Ico n={r.est} c={`est-t--${r.est}`} />}<span>{r.nome}</span><span className="raia__n">{r.itens.length}</span></h2>
+              <h2 className="raia__h" id={`raia-${r.id}`}>{r.est && <Ico nome={r.est} classe={`est-t--${r.est}`} />}<span>{r.nome}</span><span className="raia__n">{r.itens.length}</span></h2>
               <div className="raia__lista">
                 {r.itens.length ? r.itens.map((i) => <Cartao key={i.id} i={i} />) : <p className="raia__vazia">{r.id === 'atrasadas' ? 'Nada atrasado. Siga assim.' : 'Vazio.'}</p>}
               </div>
@@ -68,11 +68,11 @@ function Cartao({ i }: { i: Item }) {
   return (
     <article className={`cartao est-c--${est}`} style={vars({ '--pc': p.cor })}>
       <button className="cartao__abrir" type="button" data-abrir={i.id} onClick={() => abrirFicha(i.id)}>
-        <span className="cartao__topo"><span className="cartao__id">{i.id}</span><TagProjeto p={p} /><span className={`cartao__prio prio--${i.prioridade}`} data-tip={`Prioridade ${PRIO[i.prioridade].toLowerCase()}`}><Ico n={i.prioridade} /><span className="sr">{`Prioridade ${PRIO[i.prioridade]}`}</span></span></span>
+        <span className="cartao__topo"><span className="cartao__id">{i.id}</span><TagProjeto p={p} /><span className={`cartao__prio prio--${i.prioridade}`} data-tip={`Prioridade ${PRIO[i.prioridade].toLowerCase()}`}><Ico nome={i.prioridade} /><span className="sr">{`Prioridade ${PRIO[i.prioridade]}`}</span></span></span>
         <span className="cartao__tit">{i.titulo}</span>
-        <span className="cartao__pe"><span className={`cartao__prazo est-t--${est}`}>{pedeAtencao(est) && <Ico n={est} />}{prazoTexto(i, t)}</span>{modo === 'prazo' && <span className="cartao__status">{STATUS[i.status]}</span>}{i.checklist.length > 0 && <span className="cartao__ck">{`${i.checklist.filter((c) => c.feito).length}/${i.checklist.length}`}</span>}</span>
+        <span className="cartao__pe"><span className={`cartao__prazo est-t--${est}`}>{pedeAtencao(est) && <Ico nome={est} />}{prazoTexto(i, t)}</span>{modo === 'prazo' && <span className="cartao__status">{STATUS[i.status]}</span>}{i.checklist.length > 0 && <span className="cartao__ck">{`${i.checklist.filter((c) => c.feito).length}/${i.checklist.length}`}</span>}</span>
       </button>
-      {prox && <button className="cartao__avancar" type="button" data-avancar-item={i.id} aria-label={`Mover ${i.id} para ${STATUS[prox]}`} data-tip={`Mover para ${STATUS[prox]}`} onClick={() => { focarDepois([`[data-avancar-item="${i.id}"]`, `[data-view="quadro"] [data-abrir="${i.id}"]`]); avancarItem(i.id); }}><Ico n={prox === 'feito' ? 'feito' : 'seta'} /></button>}
+      {prox && <button className="cartao__avancar" type="button" data-avancar-item={i.id} aria-label={`Mover ${i.id} para ${STATUS[prox]}`} data-tip={`Mover para ${STATUS[prox]}`} onClick={() => { focarDepois([`[data-avancar-item="${i.id}"]`, `[data-view="quadro"] [data-abrir="${i.id}"]`]); avancarItem(i.id); }}><Ico nome={prox === 'feito' ? 'feito' : 'seta'} /></button>}
     </article>
   );
 }

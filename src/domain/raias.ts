@@ -1,4 +1,4 @@
-import { FLUXO, PENDENTE, porAtualizacao, porPrazo, PRAZO_APERTADO_MS, STATUS, TODOS_STATUS } from './motor';
+import { FLUXO, estaPendente, porAtualizacao, porPrazo, PRAZO_APERTADO_MS, STATUS, TODOS_STATUS } from './motor';
 import { H } from './tempo';
 import type { EstadoItem, Item, Status } from './tipos';
 
@@ -16,7 +16,7 @@ export function montarRaias(itens: Item[], modo: Modo, t: number): Raia[] {
     return status.map((s) => ({ id: s, nome: STATUS[s], est: s === 'feito' ? 'feito' : null, itens: itens.filter((i) => i.status === s).sort(s === 'feito' ? porAtualizacao : porPrioridade) }));
   }
   // por prazo: tudo que não foi entregue, inclusive backlog
-  const pend = itens.filter(PENDENTE).sort(porPrioridade);
+  const pend = itens.filter(estaPendente).sort(porPrioridade);
   const em = (i: Item) => (i.prazo ? Date.parse(i.prazo) - t : null);
   const entre = (i: Item, min: number, max: number) => { const d = em(i); return d !== null && d >= min && d <= max; };
   return [

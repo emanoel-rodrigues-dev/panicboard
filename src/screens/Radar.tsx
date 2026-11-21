@@ -4,12 +4,12 @@ import { Gif } from '../components/Gif';
 import { Ico, vars } from '../components/Icone';
 import { girarGif } from '../domain/acoes';
 import { REACOES } from '../domain/reacoes';
-import { ABERTO, avaliarTodos, estadoItem, porAtualizacao, porPrazo, prazoTexto, reacao, REGRAS, type Avaliacao } from '../domain/motor';
+import { estaAberta, avaliarTodos, estadoItem, porAtualizacao, porPrazo, prazoTexto, reacao, REGRAS, type Avaliacao } from '../domain/motor';
 import { COR_NEUTRA, proj } from '../domain/projetos';
 import { dur, fmtData } from '../domain/tempo';
 import type { Item, Projeto, Regra } from '../domain/tipos';
 
-const titulo = (n: number) => (n === 1 ? 'Demandas do seu projeto, num quadro só' : `Demandas dos seus ${n} projetos, num quadro só`);
+const tituloPara = (n: number) => (n === 1 ? 'Demandas do seu projeto, num quadro só' : `Demandas dos seus ${n} projetos, num quadro só`);
 /** "a, b e c" */
 const juntar = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} e ${xs.at(-1)}` : xs[0] ?? '');
 /** o palco foi desenhado para até 4 camadas; os demais projetos ficam nos cartões abaixo */
@@ -22,7 +22,7 @@ export function Radar() {
   const { S, t } = useApp();
   const av = avaliarTodos(S.itens, S.projetos, t);
   const noRadar = new Set(av.map((a) => a.pid));
-  const prox = S.itens.filter((i) => noRadar.has(i.projeto) && ABERTO(i) && i.prazo && Date.parse(i.prazo) >= t).sort(porPrazo)[0];
+  const prox = S.itens.filter((i) => noRadar.has(i.projeto) && estaAberta(i) && i.prazo && Date.parse(i.prazo) >= t).sort(porPrazo)[0];
   return (
     <>
       <Hero av={av} />
@@ -55,7 +55,7 @@ function frase(a: Avaliacao, p: Projeto, t: number) {
 
 function Hero({ av }: { av: Avaliacao[] }) {
   const { S, t, deslocamentoH, reduz, pausado, alternarPausa, abrirProjetos } = useApp();
-  const TITULO = av.length ? titulo(av.length) : 'Nenhum projeto no radar';
+  const titulo = av.length ? tituloPara(av.length) : 'Nenhum projeto no radar';
   const [entrando, setEntrando] = useState(() => !entradaFeita && !reduz);
   useEffect(() => {
     entradaFeita = true;
@@ -75,8 +75,8 @@ function Hero({ av }: { av: Avaliacao[] }) {
         <div className="hero__txt">
           <p className="hero__aovivo"><span className="pontoaovivo" aria-hidden="true" /><span data-hero-hora="">{`${deslocamentoH ? 'Relógio simulado' : 'Ao vivo'} · ${fmtData.format(t)}`}</span></p>
           {entrando
-            ? <h1 id="hero-h" tabIndex={-1} aria-label={TITULO}>{TITULO.split(' ').map((w, n) => <Fragment key={n}>{n > 0 && ' '}<span className="palavra" aria-hidden="true"><span style={vars({ '--w': n })}>{w}</span></span></Fragment>)}</h1>
-            : <h1 id="hero-h" tabIndex={-1} style={av.length ? undefined : { hyphens: 'manual' }}>{TITULO}</h1>}
+            ? <h1 id="hero-h" tabIndex={-1} aria-label={titulo}>{titulo.split(' ').map((w, n) => <Fragment key={n}>{n > 0 && ' '}<span className="palavra" aria-hidden="true"><span style={vars({ '--w': n })}>{w}</span></span></Fragment>)}</h1>
+            : <h1 id="hero-h" tabIndex={-1} style={av.length ? undefined : { hyphens: 'manual' }}>{titulo}</h1>}
           <p className="hero__lead" data-hero-lead="">{av.length
             ? `Agora: ${partes.length ? `${juntar(partes)}.` : 'tudo no ritmo.'}${resto} Clique num projeto para ver as demandas.`
             : 'Cadastre um projeto e o PanicBoard passa a vigiar os prazos das demandas dele.'}</p>
@@ -118,7 +118,7 @@ function Palco({ av }: { av: Avaliacao[] }) {
         return (
           <div key={p.id} className="camada" ref={(el) => el?.setAttribute('style', `--i:${i};--pc:${p.cor};--pt:${p.tinta}`)} data-camada={p.id}>
             <button className="camada__alvo" type="button" data-camada-btn={p.id} aria-label={naPonta ? `Ver demandas de ${p.curto} no quadro` : `Trazer ${p.curto} para a frente`} onClick={() => clicar(p.id)} />
-            <div className="camada__cab"><span className="camada__nome">{p.nome}</span><span className="camada__estado"><Ico n={a.regra || 'normal'} />{a.estado}</span></div>
+            <div className="camada__cab"><span className="camada__nome">{p.nome}</span><span className="camada__estado"><Ico nome={a.regra || 'normal'} />{a.estado}</span></div>
             <div className="camada__corpo">
               {r
                 ? <Gif key={r.id} r={r} chave={`palco-${p.id}`} tarja={naPonta} tocar={naPonta ? undefined : false} />
@@ -138,7 +138,7 @@ function PalcoVazio() {
     <div className="hero__palco" data-palco="">
       <div className="camada" ref={(el) => el?.setAttribute('style', `--i:0;--pc:${COR_NEUTRA.cor};--pt:${COR_NEUTRA.tinta}`)}>
         <button className="camada__alvo" type="button" aria-label="Cadastrar o primeiro projeto" onClick={() => abrirProjetos('novo')} />
-        <div className="camada__cab"><span className="camada__nome">Seu primeiro projeto</span><span className="camada__estado"><Ico n="normal" />Aguardando</span></div>
+        <div className="camada__cab"><span className="camada__nome">Seu primeiro projeto</span><span className="camada__estado"><Ico nome="normal" />Aguardando</span></div>
         <div className="camada__corpo"><div className="camada__calma"><strong>Cadastre um projeto</strong><span>Ele aparece aqui, com o GIF da regra do momento.</span></div></div>
       </div>
     </div>
@@ -158,7 +158,7 @@ function Canal({ a }: { a: Avaliacao }) {
   return (
     <article className="canal" style={vars({ '--pc': p.cor, '--pt': p.tinta })}>
       <header className="canal__cab"><h3>{p.nome}</h3><span className="canal__sigla">{p.sigla}</span></header>
-      <p className={`canal__estado est--${a.regra || 'normal'}`}><Ico n={a.regra || 'normal'} /><span>{a.estado}</span></p>
+      <p className={`canal__estado est--${a.regra || 'normal'}`}><Ico nome={a.regra || 'normal'} /><span>{a.estado}</span></p>
       <dl className="canal__nums">
         <div><dt>Abertas</dt><dd>{a.abertos.length}</dd></div>
         <div><dt>Atrasadas</dt><dd>{a.atrasados.length}</dd></div>
@@ -198,7 +198,7 @@ function Reacoes({ av }: { av: Avaliacao[] }) {
         </div>
         <div className="regras" data-regras="">
           {(Object.keys(REGRAS) as Regra[]).map((k) => {
-            const R = REGRAS[k];
+            const definicao = REGRAS[k];
             const quem = av.filter((a) => a.regra === k);
             const lista = REACOES[k];
             const r = reacao(k, S.girar);
@@ -207,8 +207,8 @@ function Reacoes({ av }: { av: Avaliacao[] }) {
               <article key={k} className={`regra est--${k}`}>
                 <Gif key={r.id} r={r} chave={`regra-${k}`} />
                 <div className="regra__txt">
-                  <h3><Ico n={k} />{R.nome}</h3>
-                  <p>{R.regra}</p>
+                  <h3><Ico nome={k} />{definicao.nome}</h3>
+                  <p>{definicao.regra}</p>
                   <p className="regra__quem">{quem.length
                     ? <>Agora em {quem.map((a, j) => <Fragment key={a.pid}>{j > 0 && ', '}<a className="link" href={`#/quadro/${a.pid}`}>{proj(S.projetos, a.pid).curto}</a></Fragment>)}</>
                     : <span className="muted">Nenhum projeto nesta regra agora.</span>}</p>

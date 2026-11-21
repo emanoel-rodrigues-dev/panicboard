@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type MouseEvent } from 'react';
 import { useApp } from '../app/contexto';
 import { pendentesDoProjeto } from '../domain/motor';
-import { arquivarProjeto, CORES, coresDaImagem, criarProjeto, editarProjeto, lerHex, limparSigla, rgbParaHex, sugerirSigla, tintaPara, validarProjeto, type DadosProjeto, type ErrosProjeto } from '../domain/projetos';
+import { arquivarProjeto, ativos, CORES, coresDaImagem, criarProjeto, editarProjeto, lerHex, limparSigla, rgbParaHex, sugerirSigla, tintaPara, validarProjeto, type DadosProjeto, type ErrosProjeto } from '../domain/projetos';
 import type { Projeto } from '../domain/tipos';
 import { Ico, vars } from './Icone';
 
@@ -31,7 +31,7 @@ export function Projetos({ inicial, depois, onFechar }: Props) {
 
 function ListaProjetos({ onEditar, onFechar }: { onEditar: (id: string) => void; onFechar: () => void }) {
   const { S } = useApp();
-  const ativos = S.projetos.filter((p) => !p.arquivado);
+  const projetosAtivos = ativos(S.projetos);
   const arquivados = S.projetos.filter((p) => p.arquivado);
   const botao = (p: Projeto) => {
     const n = pendentesDoProjeto(S.itens, p.id).length;
@@ -45,11 +45,11 @@ function ListaProjetos({ onEditar, onFechar }: { onEditar: (id: string) => void;
     <div className="ficha" data-projetos="">
       <div className="ficha__cab">
         <p className="ficha__id">Projetos</p>
-        <button className="ficha__fechar" type="button" data-fechar="" aria-label="Fechar" onClick={onFechar}><Ico n="fechar" /></button>
+        <button className="ficha__fechar" type="button" data-fechar="" aria-label="Fechar" onClick={onFechar}><Ico nome="fechar" /></button>
       </div>
       <h2 id="gaveta-h" className="ficha__h">Seus projetos</h2>
-      {ativos.length
-        ? <div className="filtros">{ativos.map(botao)}</div>
+      {projetosAtivos.length
+        ? <div className="filtros">{projetosAtivos.map(botao)}</div>
         : <p className="ficha__salvo">Nenhum projeto ativo. Cadastre o primeiro para começar a anotar demandas.</p>}
       <div className="ficha__acoes"><button className="btn btn--primary" type="button" data-projeto-novo="" onClick={() => onEditar('novo')}>Novo projeto</button></div>
       {arquivados.length > 0 && (
@@ -126,7 +126,7 @@ function FormProjeto({ p, depois, onVoltar, onFechar }: { p?: Projeto; depois?: 
     <form className="ficha" data-projeto-form="" noValidate style={vars({ '--pc': hex ?? CORES[0].cor })} onSubmit={salvar}>
       <div className="ficha__cab">
         <p className="ficha__id">{p ? `Projetos · ${p.sigla}` : 'Novo projeto'}</p>
-        <button className="ficha__fechar" type="button" data-fechar="" aria-label="Fechar" onClick={onFechar}><Ico n="fechar" /></button>
+        <button className="ficha__fechar" type="button" data-fechar="" aria-label="Fechar" onClick={onFechar}><Ico nome="fechar" /></button>
       </div>
       <h2 id="gaveta-h" className="ficha__h">{p ? p.nome : 'Qual é o projeto?'}</h2>
       <div className="campo">

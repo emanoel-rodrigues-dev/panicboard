@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { avancarStatus, criarItem, descartarIdeia, editarPasso, excluirItem, marcarPasso, mudarCampo, promoverIdeia, removerPasso } from './acoes';
-import { avaliar, avaliarTodos, estadoItem, PENDENTE } from './motor';
+import { avaliar, avaliarTodos, estadoItem, estaPendente } from './motor';
 import { arquivarProjeto, coresDaImagem, criarProjeto, editarProjeto, lerHex, sugerirSigla, tintaPara, validarProjeto } from './projetos';
 import { montarRaias } from './raias';
 import { montarExemplo } from './seed';
@@ -41,7 +41,7 @@ describe('bug 2: demanda em backlog no quadro por prazo', () => {
     const raias = montarRaias(S.itens.filter((i) => i.projeto === 'folha'), 'prazo', T);
     const ids = raias.flatMap((r) => r.itens.map((i) => i.id));
     expect(ids).toContain('PF-14');
-    expect(S.itens.filter((i) => i.projeto === 'folha' && PENDENTE(i)).map((i) => i.id)).toContain('PF-14');
+    expect(S.itens.filter((i) => i.projeto === 'folha' && estaPendente(i)).map((i) => i.id)).toContain('PF-14');
   });
 
   it('sem prazo vai para "Depois ou sem prazo"', () => {

@@ -36,7 +36,7 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
   const reduz = useMedia('(prefers-reduced-motion: reduce)');
   const avisos = useNotificacoes(S, t, deslocamentoH !== 0);
   const [rota, setRota] = useState<Rota>(lerRota);
-  const [modo, setModoSt] = useState<Modo>(() => (preferencia.ler('modo', 'prazo') === 'status' ? 'status' : 'prazo'));
+  const [modo, setModoEstado] = useState<Modo>(() => (preferencia.ler('modo', 'prazo') === 'status' ? 'status' : 'prazo'));
   const [pausado, setPausado] = useState(() => preferencia.ler('pausado', '0') === '1');
   const [tocando, setTocando] = useState<Set<string>>(() => new Set());
   const [frente, setFrente] = useState<string | null>(null);
@@ -121,13 +121,13 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
   /* ---------- relógio e dados de exemplo ---------- */
   const avancarRelogio = useCallback((h: number) => {
     const novoDesl = h === 0 ? 0 : deslocamentoH + h;
-    const t2 = real + novoDesl * H;
-    const mud = ativos(S.projetos).map((p) => {
-      const antes = avaliar(S.itens, p.id, t).regra; const depois = avaliar(S.itens, p.id, t2).regra;
+    const tNovo = real + novoDesl * H;
+    const mudancas = ativos(S.projetos).map((p) => {
+      const antes = avaliar(S.itens, p.id, t).regra; const depois = avaliar(S.itens, p.id, tNovo).regra;
       return depois !== antes ? `${p.curto}: ${depois ? REGRAS[depois].nome : 'sem alerta'}` : null;
     }).filter(Boolean);
     setDeslocamentoH(novoDesl); setFrente(null);
-    avisar(`${h === 0 ? 'Relógio de volta para agora' : `Relógio em ${rotuloRelogio(novoDesl)}`}. ${mud.length ? mud.join(' · ') : 'Nenhuma reação mudou.'}`);
+    avisar(`${h === 0 ? 'Relógio de volta para agora' : `Relógio em ${rotuloRelogio(novoDesl)}`}. ${mudancas.length ? mudancas.join(' · ') : 'Nenhuma reação mudou.'}`);
   }, [S, deslocamentoH, real, t, avisar]);
 
   const restaurarExemplo = useCallback(() => {
@@ -198,7 +198,7 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
     atualizar, avisar, focarDepois, avancarItem, abrirFicha, novaDemanda, abrirProjetos, avancarRelogio, restaurarExemplo,
     alternarGif: (k) => setTocando((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n; }),
     alternarPausa: () => { setPausado((p) => { preferencia.gravar('pausado', p ? '0' : '1'); return !p; }); setTocando(new Set()); },
-    setModo: (m) => { setModoSt(m); preferencia.gravar('modo', m); },
+    setModo: (m) => { setModoEstado(m); preferencia.gravar('modo', m); },
     setFrente, setIdeiasFiltro,
   }), [S, t, deslocamentoH, rota, parado, reduz, pausado, tocando, modo, frente, ideiasFiltro, atualizar, avisar, focarDepois, avancarItem, abrirFicha, novaDemanda, abrirProjetos, avancarRelogio, restaurarExemplo]);
 

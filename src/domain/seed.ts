@@ -13,7 +13,7 @@ export const PROJETOS: Projeto[] = [
 // status: backlog | fazer | fazendo | revisao | feito ; prioridade: alta | media | baixa
 // prazo/atualizado/criado: horas relativas (negativo = passado)
 type Linha = [string, number, string, Status, Prioridade, number | null, number, number, string, [string, boolean][]];
-const D: Linha[] = [
+const DEMANDAS: Linha[] = [
   // Funil CRM: trabalho em andamento, mas nada se mexe há 60 h -> abandonado
   ['funil', 31, 'Importar contatos do CRM antigo por CSV', 'fazendo', 'alta', 118, -60, -200,
     'Planilha da base antiga tem 14 mil linhas. Mapear colunas "Telefone 2" e "Origem" para os campos novos e validar e-mails duplicados antes de gravar.',
@@ -62,7 +62,7 @@ export const IDEIAS: [string, number][] = [
 
 export function montarExemplo(agora: number): Estado {
   const h = (n: number) => new Date(agora + n * 3600e3).toISOString();
-  const itens: Item[] = D.map(([projeto, num, titulo, status, prioridade, prazo, atualizado, criado, descricao, checklist]) => {
+  const itens: Item[] = DEMANDAS.map(([projeto, num, titulo, status, prioridade, prazo, atualizado, criado, descricao, checklist]) => {
     const p = PROJETOS.find((x) => x.id === projeto)!;
     return {
       id: `${p.sigla}-${num}`, projeto, titulo, status, prioridade,

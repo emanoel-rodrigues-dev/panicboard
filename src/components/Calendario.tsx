@@ -51,9 +51,9 @@ export function Calendario({ valor, t, onEscolher }: Props) {
     <>
       <div className="cal__atalhos">{ATALHOS.map(([k, r]) => <button key={k} type="button" className="chip" data-prazo-atalho={k} onClick={() => atalho(k)}>{r}</button>)}</div>
       <div className="cal__cab">
-        <button type="button" className="cal__nav" data-prazo-mes="-1" aria-label="Mês anterior" onClick={() => setMes(new Date(mes.getFullYear(), mes.getMonth() - 1, 1))}><Ico n="seta" c="ico--vira" /></button>
+        <button type="button" className="cal__nav" data-prazo-mes="-1" aria-label="Mês anterior" onClick={() => setMes(new Date(mes.getFullYear(), mes.getMonth() - 1, 1))}><Ico nome="seta" classe="ico--vira" /></button>
         <strong>{fmtMes.format(mes)}</strong>
-        <button type="button" className="cal__nav" data-prazo-mes="1" aria-label="Próximo mês" onClick={() => setMes(new Date(mes.getFullYear(), mes.getMonth() + 1, 1))}><Ico n="seta" /></button>
+        <button type="button" className="cal__nav" data-prazo-mes="1" aria-label="Próximo mês" onClick={() => setMes(new Date(mes.getFullYear(), mes.getMonth() + 1, 1))}><Ico nome="seta" /></button>
       </div>
       <div className="cal__grade">
         {SEMANA.map((x, n) => <span key={`s${n}`} className="cal__sem" aria-hidden="true">{x}</span>)}

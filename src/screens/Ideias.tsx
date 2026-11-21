@@ -12,7 +12,7 @@ export function Ideias() {
   const [texto, setTexto] = useState('');
   const [erro, setErro] = useState(false);
   const campo = useRef<HTMLTextAreaElement>(null);
-  const lista = S.ideias.filter((d) => (ideiasFiltro === 'abertas' ? !d.promovida : d.promovida)).sort((a, b) => Date.parse(b.criado) - Date.parse(a.criado));
+  const lista = S.ideias.filter((ideia) => (ideiasFiltro === 'abertas' ? !ideia.promovida : ideia.promovida)).sort((a, b) => Date.parse(b.criado) - Date.parse(a.criado));
 
   const guardar = (e?: FormEvent) => {
     e?.preventDefault();
@@ -50,7 +50,7 @@ export function Ideias() {
         </div>
         <div className="ideias" data-ideias="">
           {lista.length
-            ? lista.map((d) => <CartaoIdeia key={d.id} d={d} />)
+            ? lista.map((ideia) => <CartaoIdeia key={ideia.id} ideia={ideia} />)
             : <p className="ideias__vazio">{ideiasFiltro === 'abertas' ? 'Nenhuma ideia solta. A próxima que aparecer, anote aqui em cima.' : 'Nenhuma ideia promovida ainda.'}</p>}
         </div>
       </div>
@@ -58,34 +58,34 @@ export function Ideias() {
   );
 }
 
-function CartaoIdeia({ d }: { d: Ideia }) {
+function CartaoIdeia({ ideia }: { ideia: Ideia }) {
   const { S, t, atualizar, avisar, abrirFicha, abrirProjetos } = useApp();
-  const item = d.promovida ? S.itens.find((i) => i.id === d.promovida) : undefined;
+  const item = ideia.promovida ? S.itens.find((i) => i.id === ideia.promovida) : undefined;
   const promover = (pid: string) => {
-    const r = promoverIdeia(S, d.id, pid, t);
+    const r = promoverIdeia(S, ideia.id, pid, t);
     if (!r) return;
     atualizar(() => r[0]);
     avisar(`Virou ${r[1].id} em ${proj(S.projetos, pid).curto}.`, { rotulo: 'Abrir a ficha', fn: () => abrirFicha(r[1].id) });
   };
   const descartar = () => {
-    const r = descartarIdeia(S, d.id);
+    const r = descartarIdeia(S, ideia.id);
     if (!r) return;
     atualizar(() => r[0]);
-    avisar(`${d.id} descartada.`, { rotulo: 'Desfazer', fn: () => atualizar(r[1]) });
+    avisar(`${ideia.id} descartada.`, { rotulo: 'Desfazer', fn: () => atualizar(r[1]) });
   };
   return (
     <article className="ideia">
-      <p className="ideia__txt">{trechosComTags(d.texto).map((x, n) => (x.tipo === 'tag' ? <span key={n} className="hashtag">{`#${x.valor}`}</span> : x.valor))}</p>
-      <p className="ideia__quando">{`${d.id} · há ${dur(t - Date.parse(d.criado))}`}</p>
+      <p className="ideia__txt">{trechosComTags(ideia.texto).map((x, n) => (x.tipo === 'tag' ? <span key={n} className="hashtag">{`#${x.valor}`}</span> : x.valor))}</p>
+      <p className="ideia__quando">{`${ideia.id} · há ${dur(t - Date.parse(ideia.criado))}`}</p>
       {item
         ? <p className="ideia__virou">Virou <button className="link" type="button" data-abrir={item.id} onClick={() => abrirFicha(item.id)}>{item.id}</button>{` em ${proj(S.projetos, item.projeto).curto}`}</p>
         : <>
-            <div className="ideia__promo" role="group" aria-label={`Promover ${d.id} a demanda de um projeto`}>
+            <div className="ideia__promo" role="group" aria-label={`Promover ${ideia.id} a demanda de um projeto`}>
               <span className="ideia__promo-rot">Promover para</span>
               {ativos(S.projetos).length === 0 && <button className="link" type="button" onClick={() => abrirProjetos('novo')}>Cadastrar um projeto</button>}
-              {ativos(S.projetos).map((p) => <button key={p.id} type="button" className="promo" style={vars({ '--pc': p.cor, '--pt': p.tinta })} data-promover={d.id} data-proj={p.id} aria-label={`Promover a demanda de ${p.curto}`} onClick={() => promover(p.id)}>{p.sigla}</button>)}
+              {ativos(S.projetos).map((p) => <button key={p.id} type="button" className="promo" style={vars({ '--pc': p.cor, '--pt': p.tinta })} data-promover={ideia.id} data-proj={p.id} aria-label={`Promover a demanda de ${p.curto}`} onClick={() => promover(p.id)}>{p.sigla}</button>)}
             </div>
-            <button className="ideia__descartar" type="button" data-descartar={d.id} aria-label={`Descartar ${d.id}`} onClick={descartar}><Ico n="lixo" /></button>
+            <button className="ideia__descartar" type="button" data-descartar={ideia.id} aria-label={`Descartar ${ideia.id}`} onClick={descartar}><Ico nome="lixo" /></button>
           </>}
     </article>
   );

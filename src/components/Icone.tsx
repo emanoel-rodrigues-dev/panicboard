@@ -19,8 +19,8 @@ const ICO: Record<string, string> = {
 };
 
 /** Ícone de traço. Os desenhos são constantes do código, nunca texto do usuário. */
-export function Ico({ n, c = '' }: { n: string; c?: string }) {
-  return <svg className={`ico ${c}`.trim()} viewBox="0 0 24 24" aria-hidden="true" dangerouslySetInnerHTML={{ __html: ICO[n] ?? ICO.normal }} />;
+export function Ico({ nome, classe = '' }: { nome: string; classe?: string }) {
+  return <svg className={`ico ${classe}`.trim()} viewBox="0 0 24 24" aria-hidden="true" dangerouslySetInnerHTML={{ __html: ICO[nome] ?? ICO.normal }} />;
 }
 
 /** variáveis CSS (--pc, --pt, --i) num style tipado */
