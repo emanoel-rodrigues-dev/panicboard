@@ -45,10 +45,10 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
   const [aviso, setAviso] = useState<{ msg: string; acao?: AcaoAviso; on: boolean }>({ msg: '', on: false });
   const [ficha, setFicha] = useState<Gaveta | null>(null);
   const [fichaAberta, setFichaAberta] = useState(false);
+  // cada abertura monta a gaveta do zero (reabrir durante a animação de fechar não pode reaproveitar o estado antigo)
+  const [abertura, setAbertura] = useState(0);
 
   const primeiro = useRef(true);
-  // cada abertura monta a gaveta do zero (reabrir durante a animação de fechar não pode reaproveitar o estado antigo)
-  const aberturas = useRef(0);
   const foco = useRef<string[] | null>(null);
   const voltaFoco = useRef<Element | null>(null);
   const pendente = useRef<(() => void) | null>(null);
@@ -71,6 +71,8 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
     for (const s of foco.current) { const el = document.querySelector<HTMLElement>(s); if (el) { el.focus(); break; } }
     foco.current = null;
   });
+  // o aviso da carga (dados recuperados, conta nova) aparece uma vez, ao abrir
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- vem de fora do React (main.tsx) e só existe na montagem
   useEffect(() => { if (avisoInicial) avisar(avisoInicial); }, [avisoInicial, avisar]);
   // mudanças vindas de outro aparelho e avisos do armazenamento (falha ao gravar na conta)
   useEffect(() => repo.assinar?.((novo) => setS(novo)), [repo]);
@@ -85,9 +87,8 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
     clearTimeout(timerFicha.current);
     pendente.current?.();
     voltaFoco.current = document.activeElement;
-    aberturas.current++;
     // monta a gaveta fechada e abre no quadro seguinte: a transição de entrada acontece mesmo ao trocar de uma gaveta para outra
-    flushSync(() => { setFicha(alvo); setFichaAberta(false); });
+    flushSync(() => { setFicha(alvo); setFichaAberta(false); setAbertura((n) => n + 1); });
     requestAnimationFrame(() => setFichaAberta(true));
     focarDepois(alvo.tipo === 'novo' ? '#f-titulo' : alvo.tipo === 'projetos' && alvo.editando ? '#p-nome' : '.ficha__fechar');
   }, [focarDepois]);
@@ -218,7 +219,7 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
       }} />
       <aside className={fichaAberta ? 'gaveta is-aberta' : 'gaveta'} data-gaveta="" role="dialog" aria-modal="false" aria-labelledby="gaveta-h" hidden={!ficha}>
         {ficha && (ficha.tipo === 'projetos'
-          ? <Projetos key={`projetos-${aberturas.current}`} inicial={ficha.editando} depois={ficha.depois} onFechar={fecharFicha} />
+          ? <Projetos key={`projetos-${abertura}`} inicial={ficha.editando} depois={ficha.depois} onFechar={fecharFicha} />
           : <Ficha key={ficha.tipo === 'item' ? ficha.id : 'novo'} alvo={ficha} onFechar={fecharFicha} registrarPendente={(fn) => { pendente.current = fn; }} />)}
       </aside>
       <Tabbar />

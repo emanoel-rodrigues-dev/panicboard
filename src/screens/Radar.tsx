@@ -106,7 +106,7 @@ function Palco({ av }: { av: Avaliacao[] }) {
   const naFrente = frente && av.some((a) => a.pid === frente) ? frente : av[0].pid;
   const ordem = [av.find((a) => a.pid === naFrente)!, ...av.filter((a) => a.pid !== naFrente)];
   const clicar = (pid: string) => {
-    if (pid === naFrente) { location.hash = `#/quadro/${pid}`; return; }
+    if (pid === naFrente) { location.assign(`#/quadro/${pid}`); return; }
     setFrente(pid); focarDepois(`[data-camada-btn="${pid}"]`);
   };
   return (

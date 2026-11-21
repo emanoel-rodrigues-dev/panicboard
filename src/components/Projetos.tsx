@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type MouseEvent } from 'react';
-import { useApp } from '../app/contexto';
+import { flushSync } from 'react-dom';
+import { $, useApp } from '../app/contexto';
 import { pendentesDoProjeto } from '../domain/motor';
 import { arquivarProjeto, ativos, CORES, coresDaImagem, criarProjeto, editarProjeto, lerHex, limparSigla, rgbParaHex, sugerirSigla, tintaPara, validarProjeto, type DadosProjeto, type ErrosProjeto } from '../domain/projetos';
 import type { Projeto } from '../domain/tipos';
@@ -10,18 +11,16 @@ export type Editando = string | null;
 
 interface Props { inicial: Editando; depois?: 'demanda'; onFechar: () => void }
 
-/** foca o seletor depois do render do próprio painel (o focarDepois do App só roda quando o App renderiza) */
-function useFocar() {
-  const [alvo, setAlvo] = useState<string | null>(null);
-  useEffect(() => { if (alvo) { document.querySelector<HTMLElement>(alvo)?.focus(); setAlvo(null); } }, [alvo]);
-  return setAlvo;
+/** aplica a mudança na tela já e foca o seletor (o focarDepois do App só roda quando o App renderiza) */
+function mudarEFocar(mudar: () => void, seletor: string) {
+  flushSync(mudar);
+  $(seletor)?.focus();
 }
 
 export function Projetos({ inicial, depois, onFechar }: Props) {
   const { S } = useApp();
-  const focar = useFocar();
   const [editando, setEditando] = useState<Editando>(inicial);
-  const ir = (e: Editando, foco: string) => { setEditando(e); focar(foco); };
+  const ir = (e: Editando, foco: string) => mudarEFocar(() => setEditando(e), foco);
   const alvo = editando && editando !== 'novo' ? S.projetos.find((p) => p.id === editando) : undefined;
   if (editando === 'novo' || alvo) {
     return <FormProjeto key={editando} p={alvo} depois={depois} onVoltar={(id) => ir(null, id ? `[data-projeto="${id}"]` : '[data-projeto-novo]')} onFechar={onFechar} />;
@@ -65,7 +64,6 @@ function ListaProjetos({ onEditar, onFechar }: { onEditar: (id: string) => void;
 
 function FormProjeto({ p, depois, onVoltar, onFechar }: { p?: Projeto; depois?: 'demanda'; onVoltar: (id?: string) => void; onFechar: () => void }) {
   const { S, atualizar, avisar, reduz, novaDemanda } = useApp();
-  const focar = useFocar();
   const [d, setD] = useState<DadosProjeto>(() => ({ nome: p?.nome ?? '', curto: p?.curto ?? '', sigla: p?.sigla ?? '', cor: p?.cor ?? CORES[S.projetos.length % CORES.length].cor }));
   // sigla sugerida pelo nome até a pessoa escrever a dela
   const [siglaManual, setSiglaManual] = useState(!!p);
@@ -117,7 +115,7 @@ function FormProjeto({ p, depois, onVoltar, onFechar }: { p?: Projeto; depois?: 
   const sigla = limparSigla(d.sigla) || '?';
   const hex = lerHex(d.cor);
   const escolherLista = (cor: string) => { setOutra(false); mudar('cor', cor); };
-  const escolherOutra = () => { setOutra(true); focar('#p-cor'); };
+  const escolherOutra = () => mudarEFocar(() => setOutra(true), '#p-cor');
   // o campo do código aparece abaixo das cores: mostra ele inteiro, com o botão da imagem
   useEffect(() => {
     if (outra) mostrarAcoes(reduz);

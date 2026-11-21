@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { $, useApp } from '../app/contexto';
 import { useFecharAoSair } from '../app/hooks';
 import { adicionarPasso, criarItem, editarPasso, excluirItem, marcarPasso, mudarCampo, removerPasso, type Campo, type NovosDados } from '../domain/acoes';
@@ -34,8 +34,9 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
   const [passo, setPasso] = useState('');
   const [editando, setEditando] = useState<{ indice: number; texto: string } | null>(null);
   const [calAberto, setCalAberto] = useState(false);
+  // o salvar antes de fechar roda fora do render: lê sempre o texto mais recente
   const textos = useRef({ titulo, descricao });
-  textos.current = { titulo, descricao };
+  useLayoutEffect(() => { textos.current = { titulo, descricao }; });
 
   const salvarCampo = (nome: Campo, valor: string) => { if (existente) atualizar((s) => mudarCampo(s, existente.id, nome, valor, t)); };
   const salvarTextos = () => { salvarCampo('titulo', textos.current.titulo); salvarCampo('descricao', textos.current.descricao); };

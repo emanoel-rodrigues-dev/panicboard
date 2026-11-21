@@ -46,6 +46,7 @@ Outros comandos:
 ```bash
 npm test           # testes (Vitest)
 npm run typecheck  # TypeScript
+npm run lint       # regras dos hooks do React (ESLint)
 npm run build      # gera o site estático em dist/
 npm run preview    # serve o dist/ para conferir o build
 ```
@@ -93,7 +94,7 @@ O build é um site estático (`dist/`) com caminhos relativos. Funciona em qualq
 
 Issues e pull requests são bem-vindos.
 
-- Rode `npm test` e `npm run typecheck` antes de abrir o PR.
+- Rode `npm test`, `npm run typecheck` e `npm run lint` antes de abrir o PR.
 - Regra de negócio nova vem com teste, no estilo dos que já existem em `src/domain/*.test.ts`.
 - Mudança visual: siga o `DESIGN.md` e coloque no PR um print de antes e depois.
 - Textos da interface em português do Brasil, curtos e diretos.
