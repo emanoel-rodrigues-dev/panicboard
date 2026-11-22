@@ -46,6 +46,20 @@ export function avancarStatus(S: Estado, id: string, t: number): Estado {
   return prox ? mudarCampo(S, id, 'status', prox, t) : S;
 }
 
+/**
+ * Adia o prazo em alguns dias, no mesmo horário. Se a conta ainda cair no passado (estava atrasada),
+ * conta a partir de hoje. Sem prazo ou já entregue: nada muda.
+ */
+export function adiarPrazo(S: Estado, id: string, dias: number, t: number): Estado {
+  const i = S.itens.find((x) => x.id === id);
+  if (!i?.prazo || i.status === 'feito') return S;
+  const d = new Date(i.prazo); d.setDate(d.getDate() + dias);
+  if (d.getTime() <= t) {
+    const hoje = new Date(t); d.setFullYear(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + dias);
+  }
+  return mudarCampo(S, id, 'prazo', d.toISOString(), t);
+}
+
 export function marcarPasso(S: Estado, id: string, n: number, feito: boolean, t: number): Estado {
   const i = S.itens.find((x) => x.id === id);
   if (!i?.checklist[n]) return S;

@@ -27,3 +27,25 @@ export function montarRaias(itens: Item[], modo: Modo, t: number): Raia[] {
     { id: 'feitas', nome: 'Entregues', est: 'feito', itens: itens.filter((i) => i.status === 'feito').sort(porAtualizacao) },
   ];
 }
+
+/** dia + dias, às 18:00 locais (o horário padrão dos atalhos do calendário) */
+function as18h(t: number, dias: number): string {
+  const d = new Date(t); d.setDate(d.getDate() + dias); d.setHours(18, 0, 0, 0);
+  return d.toISOString();
+}
+
+/**
+ * O que a demanda criada direto numa coluna já recebe, para cair nessa mesma coluna.
+ * null: a coluna não aceita criação (já atrasada ou já entregue).
+ */
+export function padraoDaRaia(raia: string, t: number): { status: Status; prazo: string | null } | null {
+  const proximas18h = () => { const hoje = new Date(t); return as18h(t, hoje.getHours() < 18 ? 0 : 1); };
+  switch (raia) {
+    case 'h24': return { status: 'fazer', prazo: proximas18h() };
+    case 'semana': return { status: 'fazer', prazo: as18h(t, 3) };
+    case 'depois': return { status: 'fazer', prazo: null };
+    case 'backlog': return { status: 'backlog', prazo: null };
+    case 'fazer': case 'fazendo': case 'revisao': return { status: raia, prazo: as18h(t, 3) };
+    default: return null;
+  }
+}

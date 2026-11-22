@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import { useApp } from '../app/contexto';
+import { Adiar } from '../components/Adiar';
 import { Ico, TagProjeto, vars } from '../components/Icone';
+import { NovaNaRaia } from '../components/NovaNaRaia';
 import { proximoStatus } from '../domain/acoes';
 import { avaliar, estadoItem, pedeAtencao, estaPendente, pendentesDoProjeto, prazoTexto, PRIO, REGRAS, STATUS } from '../domain/motor';
 import { ativos, proj } from '../domain/projetos';
@@ -16,6 +19,10 @@ export function Quadro() {
   const visiveis = S.itens.filter((i) => lista.some((p) => p.id === i.projeto));
   const itens = visiveis.filter((i) => filtro === 'todos' || i.projeto === filtro);
   const raias = montarRaias(itens, modo, t);
+  // criação direto na coluna: uma de cada vez; em "Todos", o projeto é escolhido ali e fica para a próxima
+  const [compondo, setCompondo] = useState<string | null>(null);
+  const [projNovo, setProjNovo] = useState<string | null>(null);
+  const projetoDaColuna = filtro !== 'todos' ? filtro : lista.some((p) => p.id === projNovo) ? projNovo! : lista[0]?.id;
   return (
     <section className="tela" aria-labelledby="quadro-h">
       <div className="wrap">
@@ -51,6 +58,10 @@ export function Quadro() {
               <h2 className="raia__h" id={`raia-${r.id}`}>{r.est && <Ico nome={r.est} classe={`est-t--${r.est}`} />}<span>{r.nome}</span><span className="raia__n">{r.itens.length}</span></h2>
               <div className="raia__lista">
                 {r.itens.length ? r.itens.map((i) => <Cartao key={i.id} i={i} />) : <p className="raia__vazia">{r.id === 'atrasadas' ? 'Nada atrasado. Siga assim.' : 'Vazio.'}</p>}
+                {projetoDaColuna && (
+                  <NovaNaRaia key={`${modo}-${r.id}`} raia={r.id} nomeRaia={r.nome} aberta={compondo === `${modo}-${r.id}`} onAbrir={() => setCompondo(`${modo}-${r.id}`)}
+                    onFechar={() => setCompondo((c) => (c === `${modo}-${r.id}` ? null : c))} projeto={projetoDaColuna} escolher={filtro === 'todos'} onProjeto={setProjNovo} />
+                )}
               </div>
             </section>
           ))}
@@ -89,6 +100,7 @@ function Cartao({ i }: { i: Item }) {
           <Ico nome={prox === 'feito' ? 'feito' : 'seta'} />
         </button>
       )}
+      {i.prazo && i.status !== 'feito' && <Adiar i={i} />}
     </article>
   );
 }

@@ -309,6 +309,31 @@ main { padding-top: var(--nav); }
 .cartao__avancar { position: absolute; top: 8px; right: 8px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; cursor: pointer; color: var(--muted); transition: color 150ms var(--ease), border-color 150ms var(--ease), background-color 150ms var(--ease); }
 .cartao__avancar .ico { width: 18px; height: 18px; }
 .cartao__avancar:hover { color: var(--surface); background: var(--ink); border-color: var(--ink); }
+/* adiar o prazo: no canto de baixo, no mesmo espaço reservado do botão de avançar */
+.adiar { position: absolute; right: 8px; bottom: 8px; transition: opacity 150ms var(--ease); }
+.cartao:has(.adiar__menu) { z-index: 3; }
+.cartao__adiar { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; cursor: pointer; color: var(--muted); transition: color 150ms var(--ease), border-color 150ms var(--ease), background-color 150ms var(--ease); }
+.cartao__adiar .ico { width: 18px; height: 18px; }
+.cartao__adiar:hover, .cartao__adiar[aria-expanded="true"] { color: var(--surface); background: var(--ink); border-color: var(--ink); }
+.adiar__menu { position: absolute; right: calc(100% + 6px); bottom: 0; display: grid; gap: 2px; width: max-content; padding: 6px; background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--r-md); box-shadow: 0 18px 40px -12px var(--sombra); animation: cair 200ms var(--ease); }
+.adiar__op { min-height: 40px; padding: 0 14px; border: 0; border-radius: var(--r-sm); background: none; font-weight: 600; font-size: 15px; text-align: left; cursor: pointer; transition: background-color 150ms var(--ease); }
+.adiar__op:hover, .adiar__op:focus-visible { background: var(--surface-2); }
+/* criar na coluna */
+.raia__add { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: var(--r-md); background: none; color: var(--muted); font-weight: 600; font-size: 15px; cursor: pointer; transition: opacity 150ms var(--ease), color 150ms var(--ease), background-color 150ms var(--ease); }
+.raia__add .ico { width: 18px; height: 18px; }
+.raia__add:hover { color: var(--ink); background: var(--surface); }
+.raia__nova { display: grid; gap: 10px; padding: 12px; background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--r-md); }
+.raia__proj { border: 0; padding: 0; margin: 0; min-width: 0; }
+.raia__proj .opcoes { gap: 6px; }
+.raia__proj .opc span { min-height: 36px; padding: 0 12px; font-size: 14px; }
+.raia__dica { font-size: 13px; color: var(--muted); }
+.raia__acoes { gap: 8px; }
+.raia__acoes .btn { --bh: 40px; flex: 1; padding: 0 14px; }
+/* com mouse, os atalhos do quadro aparecem ao passar o mouse ou com o foco do teclado; no toque ficam sempre visíveis */
+@media (hover: hover) and (pointer: fine) {
+  .raia__add, .cartao .adiar { opacity: 0; }
+  .raia:hover .raia__add, .raia__add:focus-visible, .cartao:hover .adiar, .cartao:focus-within .adiar { opacity: 1; }
+}
 
 /* ---------- ideias: um espaço à parte, inteiro amarelo ---------- */
 .ideias__sub { font-size: 17px; font-weight: 500; max-width: 30em; }

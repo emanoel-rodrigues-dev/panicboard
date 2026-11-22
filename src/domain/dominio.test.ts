@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { avancarStatus, criarItem, descartarIdeia, editarPasso, excluirItem, marcarPasso, mudarCampo, promoverIdeia, removerPasso } from './acoes';
+import { adiarPrazo, avancarStatus, criarItem, descartarIdeia, editarPasso, excluirItem, marcarPasso, mudarCampo, promoverIdeia, removerPasso } from './acoes';
 import { avaliar, avaliarTodos, estadoItem, estaPendente } from './motor';
 import { arquivarProjeto, coresDaImagem, criarProjeto, editarProjeto, lerHex, sugerirSigla, tintaPara, validarProjeto } from './projetos';
-import { montarRaias } from './raias';
+import { montarRaias, padraoDaRaia } from './raias';
 import { montarExemplo } from './seed';
 import { H } from './tempo';
 import { trechosComTags, tituloDaIdeia } from './texto';
@@ -206,5 +206,61 @@ describe('extras', () => {
     expect(pesos).toEqual([...pesos].sort());
     const fazer = montarRaias(S.itens, 'status', T).find((r) => r.id === 'fazer')!;
     expect(fazer.itens[0].prioridade).toBe('alta');
+  });
+});
+
+describe('criar na coluna do quadro', () => {
+  const vazio = () => ({ ...exemplo(), itens: [] });
+  // horas locais: o padrão usa 18:00 do fuso de quem usa
+  const horas = [[0, 0], [8, 0], [17, 59], [18, 0], [23, 59]].map(([h, m]) => new Date(2026, 10, 18, h, m).getTime());
+
+  it.each(['h24', 'semana', 'depois'])('a demanda criada em "%s" cai na mesma coluna a qualquer hora', (raia) => {
+    for (const t of horas) {
+      const [S] = criarItem(vazio(), { projeto: 'folha', titulo: 'Nova', prioridade: 'media', descricao: '', checklist: [], ...padraoDaRaia(raia, t)! }, t);
+      const onde = montarRaias(S.itens, 'prazo', t).find((r) => r.itens.length)!.id;
+      expect(onde, new Date(t).toString()).toBe(raia);
+    }
+  });
+
+  it('por status, nasce no status da coluna; backlog sem prazo', () => {
+    const t = horas[1];
+    for (const s of ['fazer', 'fazendo', 'revisao'] as const) expect(padraoDaRaia(s, t)).toMatchObject({ status: s, prazo: expect.any(String) });
+    expect(padraoDaRaia('backlog', t)).toEqual({ status: 'backlog', prazo: null });
+  });
+
+  it('Atrasadas, Entregues e Feito não têm criação', () => {
+    for (const r of ['atrasadas', 'feitas', 'feito']) expect(padraoDaRaia(r, horas[1])).toBeNull();
+  });
+});
+
+describe('adiar o prazo pelo cartão', () => {
+  const t = new Date(2026, 10, 18, 10, 0).getTime();
+  const comPrazo = (prazo: Date | null, status: 'fazer' | 'feito' = 'fazer') =>
+    criarItem({ ...exemplo(), itens: [] }, { projeto: 'folha', titulo: 'X', status, prioridade: 'media', prazo: prazo && prazo.toISOString(), descricao: '', checklist: [] }, t);
+  const prazoDe = (S: ReturnType<typeof exemplo>, id: string) => new Date(S.itens.find((i) => i.id === id)!.prazo!);
+
+  it('prazo no futuro: soma os dias e mantém o horário', () => {
+    const [S, i] = comPrazo(new Date(2026, 10, 20, 14, 0));
+    expect(prazoDe(adiarPrazo(S, i.id, 1, t), i.id)).toEqual(new Date(2026, 10, 21, 14, 0));
+    expect(prazoDe(adiarPrazo(S, i.id, 7, t), i.id)).toEqual(new Date(2026, 10, 27, 14, 0));
+  });
+
+  it('atrasada há dias: conta a partir de hoje, no mesmo horário, e sai do atraso', () => {
+    const [S, i] = comPrazo(new Date(2026, 10, 14, 18, 0));
+    expect(prazoDe(adiarPrazo(S, i.id, 1, t), i.id)).toEqual(new Date(2026, 10, 19, 18, 0));
+  });
+
+  it('atrasada de ontem com +1 dia: fica para hoje no mesmo horário, se ainda não passou', () => {
+    const [S, i] = comPrazo(new Date(2026, 10, 17, 18, 0));
+    expect(prazoDe(adiarPrazo(S, i.id, 1, t), i.id)).toEqual(new Date(2026, 10, 18, 18, 0));
+  });
+
+  it('registra no histórico; sem prazo ou entregue não muda', () => {
+    const [S, i] = comPrazo(new Date(2026, 10, 20, 14, 0));
+    expect(adiarPrazo(S, i.id, 1, t).itens[0].historico.length).toBe(2);
+    const [S2, sem] = comPrazo(null);
+    expect(adiarPrazo(S2, sem.id, 1, t)).toBe(S2);
+    const [S3, feita] = comPrazo(new Date(2026, 10, 20, 14, 0), 'feito');
+    expect(adiarPrazo(S3, feita.id, 1, t)).toBe(S3);
   });
 });
