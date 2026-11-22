@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>Entre no PanicBoard</title>
+<!-- E-mail do link de entrada (Supabase Auth). Tabelas e estilos inline porque é o que os leitores de e-mail entendem.
+     Cores e tarja de legenda seguem o DESIGN.md; a Archivo carrega onde o leitor deixa, senão cai na Helvetica/Arial. -->
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@80..125,400..900&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 0; }
+  a { color: #ffd43b; }
+  @media (max-width: 520px) {
+    .cartao { padding: 28px 22px !important; }
+    .titulo { font-size: 30px !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#0a0b0e;">
+<!-- texto que aparece ao lado do assunto na caixa de entrada -->
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#0a0b0e;">Clique no botão para entrar. Sem senha, o link vale por 1 hora.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0a0b0e;">
+  <tr>
+    <td align="center" style="padding:32px 12px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
+        <tr>
+          <td style="padding:0 4px 18px;font-family:'Archivo',Helvetica,Arial,sans-serif;font-size:18px;font-weight:800;color:#ecebe4;letter-spacing:-0.2px;">
+            <span style="display:inline-block;width:10px;height:10px;border-radius:5px;background:#e5484d;vertical-align:middle;margin-right:8px;"></span>PanicBoard
+          </td>
+        </tr>
+        <tr>
+          <td class="cartao" style="background:#181b21;border:1px solid #2a2e37;border-radius:20px;padding:36px 34px;">
+            <h1 class="titulo" style="margin:0 0 14px;font-family:'Archivo',Helvetica,Arial,sans-serif;font-size:34px;line-height:1.05;font-weight:900;color:#ecebe4;letter-spacing:-0.5px;">Seu link para entrar</h1>
+            <p style="margin:0 0 26px;font-family:Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#a2a6af;">Clique no botão e o PanicBoard abre direto no seu quadro. Não precisa de senha.</p>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="border-radius:999px;background:#ffd43b;">
+                  <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:15px 30px;font-family:'Archivo',Helvetica,Arial,sans-serif;font-size:16px;font-weight:800;color:#16181d;text-decoration:none;border-radius:999px;">Entrar no PanicBoard &rarr;</a>
+                </td>
+              </tr>
+            </table>
+            <!-- a assinatura do app: tarja de legenda, nome no amarelo e a fala na barra escura -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:30px 0 0;">
+              <tr>
+                <td style="background:#ffd43b;padding:4px 9px;font-family:'Archivo',Helvetica,Arial,sans-serif;font-size:12px;font-weight:800;color:#16181d;text-transform:uppercase;letter-spacing:0.4px;">PanicBoard</td>
+              </tr>
+              <tr>
+                <td style="background:#0e1015;padding:8px 12px;font-family:'Archivo',Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#ecebe4;">O link vale por 1 hora e funciona uma vez só.</td>
+              </tr>
+            </table>
+            <p style="margin:28px 0 6px;font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#a2a6af;">Se o botão não abrir, copie este endereço no navegador:</p>
+            <p style="margin:0;font-family:Menlo,Consolas,monospace;font-size:12px;line-height:1.5;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#ffd43b;text-decoration:underline;">{{ .ConfirmationURL }}</a></p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 6px 0;font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1.55;color:#7d828c;">
+            Não pediu para entrar? Pode ignorar este e-mail. Sem clicar no link, ninguém entra na sua conta.
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

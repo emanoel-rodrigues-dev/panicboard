@@ -245,6 +245,15 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# E-mail do link de entrada. A conta nova recebe o de confirmação; quem já tem conta, o de magic link.
+[auth.email.template.magic_link]
+subject = "Seu link para entrar no PanicBoard"
+content_path = "./supabase/templates/link-de-entrada.html"
+
+[auth.email.template.confirmation]
+subject = "Seu link para entrar no PanicBoard"
+content_path = "./supabase/templates/link-de-entrada.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"

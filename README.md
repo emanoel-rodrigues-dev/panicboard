@@ -76,6 +76,8 @@ npm run preview    # serve o dist/ para conferir o build
 
 5. Rode `npm run dev` de novo. O app pede o seu e-mail e manda o link de entrada. No primeiro login, os dados que estavam no navegador vão para a sua conta.
 
+**E-mail de entrada:** o modelo em [`supabase/templates/link-de-entrada.html`](supabase/templates/link-de-entrada.html) já vale no Supabase local. Na nuvem, o plano grátis só aceita modelo próprio com um servidor de e-mail seu: configure em **Authentication → Emails → SMTP Settings** e aplique o modelo com `supabase config push`. Sem isso, o Supabase manda o e-mail padrão dele, em inglês, e só para os membros da sua organização.
+
 **Deixar só você entrar:** depois do seu primeiro login, desligue o cadastro de novos usuários em **Authentication → Providers → Email** ("Allow new users to sign up"). A chave pública vai junto no código do site, e isso é normal no Supabase: quem protege os dados é o RLS. Ainda assim, desligar o cadastro impede que outras pessoas criem contas no seu banco.
 
 ### Supabase local, no Docker
