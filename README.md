@@ -1,3 +1,11 @@
+
+
+https://github.com/user-attachments/assets/47793f5d-1026-49eb-a4e6-02e6d6d9a5c7
+
+
+
+https://github.com/user-attachments/assets/0b4f6a2d-b3df-4aaf-94ac-ebb51b80c549
+
 # PanicBoard
 
 Um quadro de demandas para quem toca vários projetos ao mesmo tempo. Você vê num olhar onde está o fogo, e quando um prazo aperta o painel reage com um GIF de série.
