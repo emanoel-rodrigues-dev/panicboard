@@ -185,7 +185,10 @@ main { padding-top: var(--nav); }
 
 /* ---------- GIF com tarja ---------- */
 .gif { position: relative; overflow: hidden; background: var(--studio-3); border-radius: var(--r-md); isolation: isolate; }
-.gif img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.gif img { position: relative; display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 320ms var(--ease-enter); }
+/* a imagem só aparece inteira (ver Gif.tsx); a anterior fica embaixo até a nova estar pronta */
+.gif img.is-pronta, .gif .gif__anterior { opacity: 1; }
+.gif .gif__anterior { position: absolute; inset: 0; transition: none; }
 .gif__falha { position: absolute; inset: 0; display: none; place-content: center; text-align: center; gap: 4px; padding: 16px 16px 72px; background: var(--studio-2); color: var(--studio-ink); }
 .gif__falha strong { font-size: 22px; font-stretch: 110%; font-weight: 800; }
 .gif__falha span { color: var(--studio-muted); font-size: 14px; }
@@ -246,9 +249,6 @@ main { padding-top: var(--nav); }
 .regra__txt { display: grid; gap: 8px; }
 .regra__quem { font-weight: 600; }
 .regra__trocar { justify-self: start; font-size: 14px; color: var(--studio-muted); }
-.pre-revelar .regra .gif img { filter: grayscale(1) contrast(.7) blur(8px); transform: scale(1.06); clip-path: inset(0 0 55% 0); transition: filter 1400ms var(--ease-enter), transform 1600ms var(--ease-enter), clip-path 1100ms var(--ease-io); }
-.pre-revelar .regra:nth-child(2) .gif img { transition-delay: 120ms; } .pre-revelar .regra:nth-child(3) .gif img { transition-delay: 240ms; } .pre-revelar .regra:nth-child(4) .gif img { transition-delay: 360ms; }
-.pre-revelar.is-revelado .regra .gif img { filter: none; transform: none; clip-path: inset(0); }
 
 .fecho { color: var(--sobre-legenda); background: var(--legenda); padding: var(--s-9) 0; }
 .sec .fecho__h { font-size: clamp(56px, 9vw, 152px); font-weight: 900; font-stretch: 118%; letter-spacing: -.045em; line-height: .92; }

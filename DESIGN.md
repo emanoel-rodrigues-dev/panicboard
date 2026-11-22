@@ -37,7 +37,7 @@ Archivo variável (Google Fonts) com eixo de largura:
 - Entrada da hero uma vez: palavras saindo da máscara, depois texto e botões, depois as camadas de trás para a frente, em cerca de 1,1 s.
 - Camadas 3D dos projetos (no máximo 4, as mais urgentes) com resposta ao hover; o piso em perspectiva corre e tem botão de pausa.
 - Ao rolar, só o palco recua (`animation-timeline`), sem pin.
-- Reações reveladas uma vez; troca de telas por View Transitions; gaveta em 220 ms.
+- GIFs só aparecem inteiros, com fade de 320 ms depois de baixados (WebP do GIPHY); troca de telas por View Transitions; gaveta em 220 ms.
 - Quando uma ação revela conteúdo abaixo da dobra, a tela ou a gaveta rola até ele (suave; instantâneo com reduced-motion).
 - Hover: botão sobe 1px e aperta .985, card sobe 2px, sublinhado se desenha.
 - Com reduced-motion tudo para, os GIFs viram still com o botão "Tocar GIF" e não aparece o botão de pausa.

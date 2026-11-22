@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useApp } from '../app/contexto';
 import { Gif } from '../components/Gif';
 import { Ico, vars } from '../components/Icone';
@@ -14,9 +14,8 @@ const tituloPara = (n: number) => (n === 1 ? 'Demandas do seu projeto, num quadr
 const juntar = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} e ${xs.at(-1)}` : xs[0] ?? '');
 /** o palco foi desenhado para até 4 camadas; os demais projetos ficam nos cartões abaixo */
 const CAMADAS = 4;
-// a entrada da hero e a revelação das reações acontecem uma vez por visita
+// a entrada da hero acontece uma vez por visita
 let entradaFeita = false;
-let reacoesReveladas = false;
 
 export function Radar() {
   const { S, t } = useApp();
@@ -177,20 +176,9 @@ function Canal({ a }: { a: Avaliacao }) {
 }
 
 function Reacoes({ av }: { av: Avaliacao[] }) {
-  const { S, reduz, atualizar } = useApp();
-  const ref = useRef<HTMLElement>(null);
-  const [fase, setFase] = useState<'' | 'pre' | 'revelado'>(() => (reacoesReveladas ? 'revelado' : reduz || !('IntersectionObserver' in window) ? '' : 'pre'));
-  useEffect(() => {
-    if (fase !== 'pre' || !ref.current) return;
-    const io = new IntersectionObserver((ents) => {
-      if (ents.some((e) => e.isIntersecting)) { reacoesReveladas = true; setFase('revelado'); io.disconnect(); }
-    }, { threshold: 0.3 });
-    io.observe(ref.current);
-    return () => io.disconnect();
-  }, [fase]);
-  const classe = ['sec sec--estudio', fase && 'pre-revelar', fase === 'revelado' && 'is-revelado'].filter(Boolean).join(' ');
+  const { S, atualizar } = useApp();
   return (
-    <section ref={ref} className={classe} id="reacoes" data-moment="picture-develops" aria-labelledby="reacoes-h">
+    <section className="sec sec--estudio" id="reacoes" aria-labelledby="reacoes-h">
       <div className="wrap">
         <div className="reacoes__topo">
           <h2 id="reacoes-h">Quatro regras de tempo, quatro reações</h2>
