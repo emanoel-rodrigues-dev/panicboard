@@ -1,16 +1,18 @@
-
-
-https://github.com/user-attachments/assets/47793f5d-1026-49eb-a4e6-02e6d6d9a5c7
-
-
-
-https://github.com/user-attachments/assets/0b4f6a2d-b3df-4aaf-94ac-ebb51b80c549
-
 # PanicBoard
 
 Um quadro de demandas para quem toca vários projetos ao mesmo tempo. Você vê num olhar onde está o fogo, e quando um prazo aperta o painel reage com um GIF de série.
 
 ![Radar: os projetos empilhados, do mais urgente para o mais calmo](docs/prints/radar.png)
+
+## Veja funcionando
+
+**Radar e relógio simulado:** avance o relógio e veja um projeto perder o prazo e ganhar a reação de atraso crítico.
+
+https://github.com/user-attachments/assets/47793f5d-1026-49eb-a4e6-02e6d6d9a5c7
+
+**Entrada com o Supabase:** o quadro de exemplo mostra o app em ação, e o login é só com o e-mail, sem senha.
+
+https://github.com/user-attachments/assets/0b4f6a2d-b3df-4aaf-94ac-ebb51b80c549
 
 ## O que ele faz
 
@@ -43,8 +45,8 @@ O PanicBoard não é um serviço com cadastro. **Cada pessoa roda a própria có
 Precisa do Node 20.19 ou mais novo (ou 22.12+).
 
 ```bash
-git clone <url-do-seu-fork>
-cd PanicBoard
+git clone https://github.com/emanoel-rodrigues-dev/panicboard.git
+cd panicboard
 npm install
 npm run dev        # abre em http://localhost:5313
 ```
