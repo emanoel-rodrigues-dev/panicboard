@@ -7,8 +7,9 @@ import './Entrar.css';
 const ESPERA = 60; // segundos até liberar o reenvio (o Supabase também limita pedidos seguidos)
 
 /** Login por link mágico: a pessoa escreve o e-mail e entra pelo link que chega na caixa de entrada.
- *  O cartão vira para mostrar que o link foi enviado; atrás, um quadro de exemplo mostra o que é o app. */
-export function Entrar({ db }: { db: SupabaseClient }) {
+ *  O cartão vira para mostrar que o link foi enviado; atrás, um quadro de exemplo mostra o que é o app.
+ *  Sem db (a demonstração em ?entrar): a mesma tela, mas nada é enviado e o verso leva para os dados de exemplo. */
+export function Entrar({ db, demo }: { db?: SupabaseClient; demo?: () => void }) {
   const [email, setEmail] = useState('');
   const [estado, setEstado] = useState<'' | 'enviando' | 'enviado'>('');
   const [erro, setErro] = useState('');
@@ -35,7 +36,7 @@ export function Entrar({ db }: { db: SupabaseClient }) {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     form.current?.animate([{ transform: 'none' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(2px)' }, { transform: 'none' }], { duration: 320 });
   };
-  const pedir = (v: string) => db.auth.signInWithOtp({ email: v, options: { emailRedirectTo: location.origin + location.pathname } });
+  const pedir = async (v: string) => db ? db.auth.signInWithOtp({ email: v, options: { emailRedirectTo: location.origin + location.pathname } }) : { error: null };
   const falha = (status?: number) => status === 429 ? 'Muitos pedidos seguidos. Espere um minuto e tente de novo.' : 'Não consegui enviar o link. Confira o e-mail e tente de novo.';
 
   const enviar = async (e: FormEvent) => {
@@ -73,6 +74,17 @@ export function Entrar({ db }: { db: SupabaseClient }) {
                 <p className="en-nota">Sem senha: chega um link no seu e-mail e é só clicar.</p>
               </div>
             </form>
+            {demo ? (
+            <div className="en-face en-verso" inert={!enviado}>
+              <div className="en-cab"><span>Demonstração</span><span className="en-est">Nenhum e-mail enviado</span></div>
+              <div className="en-corpo">
+                <h2 className="en-h2" ref={titulo} tabIndex={-1}>Na sua cópia, o link chega no e-mail</h2>
+                <p className="en-sub">Aqui é só uma demonstração: os projetos são de exemplo e o que você mexer fica só neste navegador.</p>
+                <button className="en-btn" type="button" data-entrar-demo="" onClick={demo}>Entrar na demonstração</button>
+                <button className="en-btn en-btn--sec" type="button" onClick={() => { setEstado(''); setReenvio(''); }}>Usar outro e-mail</button>
+              </div>
+            </div>
+            ) : (
             <div className="en-face en-verso" inert={!enviado}>
               <div className="en-cab"><span>Link enviado</span><span className="en-est">Confira a caixa de entrada</span></div>
               <div className="en-corpo">
@@ -83,6 +95,7 @@ export function Entrar({ db }: { db: SupabaseClient }) {
                 <p className="en-nota" role="status">{reenvio}</p>
               </div>
             </div>
+            )}
           </div>
         </div>
         <QuadroVitrine palco={palco} enviado={enviado} />

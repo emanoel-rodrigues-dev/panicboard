@@ -20,7 +20,15 @@ const chave = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 if (!url || !chave) {
   // sem Supabase configurado: tudo no navegador, como uma demonstração
   const repo = repositorioLocal();
-  abrir(repo, await repo.carregar());
+  if (new URLSearchParams(location.search).has('entrar')) {
+    // ?entrar: a demonstração começa pela tela de entrada, como na instância com conta
+    const { Entrar } = await import('./components/Entrar');
+    const carga = await repo.carregar();
+    const entrar = () => { history.replaceState(null, '', location.pathname + location.hash); abrir(repo, carga); };
+    raiz.render(<StrictMode><Entrar demo={entrar} /></StrictMode>);
+  } else {
+    abrir(repo, await repo.carregar());
+  }
 } else {
   // a biblioteca só é baixada quando o Supabase está configurado
   const [{ createClient }, { repositorioSupabase }, { Entrar }] = await Promise.all([import('@supabase/supabase-js'), import('./data/supabase'), import('./components/Entrar')]);
