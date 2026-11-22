@@ -2,6 +2,8 @@
 
 Um quadro de demandas para quem toca vários projetos ao mesmo tempo. Você vê num olhar onde está o fogo, e quando um prazo aperta o painel reage com um GIF de série.
 
+**[Experimente a demonstração](https://emanoel-rodrigues-dev.github.io/panicboard/)**: abre no navegador, com projetos de exemplo e sem cadastro. O que você mexer fica só no seu navegador.
+
 ![Radar: os projetos empilhados, do mais urgente para o mais calmo](docs/prints/radar.png)
 
 ## Veja funcionando
