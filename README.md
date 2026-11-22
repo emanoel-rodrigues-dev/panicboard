@@ -78,16 +78,16 @@ npm run preview    # serve o dist/ para conferir o build
 
 **Deixar só você entrar:** depois do seu primeiro login, desligue o cadastro de novos usuários em **Authentication → Providers → Email** ("Allow new users to sign up"). A chave pública vai junto no código do site, e isso é normal no Supabase: quem protege os dados é o RLS. Ainda assim, desligar o cadastro impede que outras pessoas criem contas no seu banco.
 
-### Supabase local, para desenvolver
+### Supabase local, no Docker
 
-Com o Docker rodando:
+Com o Docker Desktop aberto, um comando sobe o banco, o login e o tempo real em contêineres e já preenche o `.env.local`. Não precisa instalar o CLI do Supabase.
 
 ```bash
-supabase start                 # sobe o banco, a autenticação e o tempo real (API na porta 55321)
-supabase status -o env         # mostra API_URL e PUBLISHABLE_KEY para o .env.local
+npm run banco          # na primeira vez baixa as imagens (alguns minutos)
+npm run dev
 ```
 
-Os e-mails de login caem no Mailpit local, em http://127.0.0.1:55324.
+Entre com qualquer e-mail: o link de login cai no Mailpit local, em http://127.0.0.1:55324. O painel do banco fica em http://127.0.0.1:55323. Para desligar, rode `npm run banco:parar` (os dados ficam guardados para a próxima vez).
 
 ## Publicar
 

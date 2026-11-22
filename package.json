@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc -b",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "banco": "node scripts/banco.mjs",
+    "banco:parar": "node scripts/banco.mjs parar"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.118.0",
