@@ -102,6 +102,7 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
     if (volta && document.contains(volta)) volta.focus();
   }, [ficha, reduz]);
   const abrirFicha = useCallback((id: string) => abrir({ tipo: 'item', id }), [abrir]);
+  const renomearFicha = useCallback((de: string, para: string) => setFicha((f) => (f?.tipo === 'item' && f.id === de ? { tipo: 'item', id: para } : f)), []);
   const abrirProjetos = useCallback((editando: Editando = null) => abrir({ tipo: 'projetos', editando }), [abrir]);
   /** projetoNovo: o projeto acabou de ser criado e ainda não está no S desta closure */
   const novaDemanda = useCallback((projetoNovo?: string) => {
@@ -198,12 +199,12 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
   const parado = reduz || pausado;
   const ctx = useMemo<AppCtx>(() => ({
     S, t, deslocamentoH, rota, parado, reduz, pausado, tocando, modo, frente, ideiasFiltro,
-    atualizar, avisar, focarDepois, avancarItem, abrirFicha, novaDemanda, abrirProjetos, avancarRelogio, restaurarExemplo,
+    atualizar, avisar, focarDepois, avancarItem, abrirFicha, renomearFicha, novaDemanda, abrirProjetos, avancarRelogio, restaurarExemplo,
     alternarGif: (k) => setTocando((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n; }),
     alternarPausa: () => { setPausado((p) => { preferencia.gravar('pausado', p ? '0' : '1'); return !p; }); setTocando(new Set()); },
     setModo: (m) => { setModoEstado(m); preferencia.gravar('modo', m); },
     setFrente, setIdeiasFiltro,
-  }), [S, t, deslocamentoH, rota, parado, reduz, pausado, tocando, modo, frente, ideiasFiltro, atualizar, avisar, focarDepois, avancarItem, abrirFicha, novaDemanda, abrirProjetos, avancarRelogio, restaurarExemplo]);
+  }), [S, t, deslocamentoH, rota, parado, reduz, pausado, tocando, modo, frente, ideiasFiltro, atualizar, avisar, focarDepois, avancarItem, abrirFicha, renomearFicha, novaDemanda, abrirProjetos, avancarRelogio, restaurarExemplo]);
 
   return (
     <Contexto.Provider value={ctx}>

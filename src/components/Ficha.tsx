@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { $, useApp } from '../app/contexto';
 import { useFecharAoSair } from '../app/hooks';
-import { adicionarPasso, criarItem, editarPasso, excluirItem, marcarPasso, mudarCampo, removerPasso, type Campo, type NovosDados } from '../domain/acoes';
+import { adicionarPasso, criarItem, editarPasso, excluirItem, marcarPasso, moverItem, mudarCampo, removerPasso, type Campo, type NovosDados } from '../domain/acoes';
 import { estadoItem, pedeAtencao, prazoTexto, PRIO, reacao, REGRAS, STATUS, TODOS_STATUS } from '../domain/motor';
 import { ativos, proj } from '../domain/projetos';
 import { fmtCurta, H, isoParaLocal, paraLocal, prazoRotulo } from '../domain/tempo';
@@ -20,7 +20,7 @@ interface Props {
 }
 
 export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
-  const { S, t, atualizar, avisar, abrirFicha } = useApp();
+  const { S, t, atualizar, avisar, abrirFicha, renomearFicha, focarDepois } = useApp();
   const existente = alvo.tipo === 'item' ? S.itens.find((x) => x.id === alvo.id) : undefined;
   const novo = alvo.tipo === 'novo';
   const [rascunho, setRascunho] = useState<NovosDados>(() => ({ projeto: alvo.tipo === 'novo' ? alvo.projeto : '', titulo: '', status: 'fazer', prioridade: 'media', prazo: new Date(t + 72 * H).toISOString(), descricao: '', checklist: [] }));
@@ -51,7 +51,24 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
 
   const mudar = (nome: 'status' | 'prioridade' | 'projeto', valor: string) => {
     if (novo) setRascunho((r) => ({ ...r, [nome]: valor }));
-    else if (nome !== 'projeto') salvarCampo(nome, valor);
+    else if (nome === 'projeto') mover(valor);
+    else salvarCampo(nome, valor);
+  };
+  /** troca de projeto: a demanda ganha a chave do projeto novo e a ficha continua aberta nela */
+  const mover = (pid: string) => {
+    if (!existente) return;
+    salvarTextos(); // o que estava sendo digitado vai junto
+    const r = moverItem(S, existente.id, pid, t);
+    if (!r) return;
+    const [, movido, desfazer] = r;
+    const de = existente.id;
+    atualizar((s) => moverItem(s, de, pid, t)?.[0] ?? s);
+    renomearFicha(de, movido.id);
+    focarDepois(`.ficha input[name="projeto"][value="${pid}"]`);
+    avisar(`${de} agora é ${movido.id}, em ${proj(S.projetos, pid).curto}.`, {
+      rotulo: 'Desfazer',
+      fn: () => { atualizar(desfazer); renomearFicha(movido.id, de); avisar(`${movido.id} voltou a ser ${de}.`); },
+    });
   };
   const prazoLocal = isoParaLocal(i.prazo);
   const escolherPrazo = (d: Date | null, fechar: boolean) => {
@@ -127,7 +144,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
           onChange={(e) => { setTitulo(e.target.value); if (e.target.value.trim()) setErroTitulo(false); }} onBlur={() => salvarCampo('titulo', titulo)} />
         <p className="field__error" id="f-titulo-erro" hidden={!erroTitulo}>Escreva um título para a demanda.</p>
       </div>
-      {novo && (
+      {(novo || ativos(S.projetos).some((x) => x.id === i.projeto)) && (
         <fieldset className="campo"><legend>Projeto</legend><div className="opcoes">
           {ativos(S.projetos).map((x) => (
             <label key={x.id} className="opc opc--proj" style={vars({ '--pc': x.cor, '--pt': x.tinta })}>

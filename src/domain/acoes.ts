@@ -88,6 +88,43 @@ export function criarItem(S: Estado, dados: NovosDados, t: number, origem = 'Dem
   return [{ ...S, seq: { ...S.seq, [p.id]: n }, itens: [...S.itens, item] }, item];
 }
 
+/** Próxima chave livre do projeto (a sigla pode ter mudado ou passado de um projeto para outro: o código nunca se repete). */
+function proximaChave(S: Estado, pid: string): [string, number] {
+  const p = proj(S.projetos, pid);
+  let n = (S.seq[p.id] || 0) + 1;
+  while (S.itens.some((i) => i.id === `${p.sigla}-${n}`)) n++;
+  return [`${p.sigla}-${n}`, n];
+}
+
+/**
+ * Move a demanda para outro projeto: ela ganha a chave do projeto novo (PF-14 vira CH-9), no mesmo lugar da lista,
+ * e a ideia que virou essa demanda passa a apontar para a chave nova. A chave antiga não é reaproveitada.
+ * Devolve também a função que traz de volta (chave e projeto antigos, mantendo o que mudou depois).
+ */
+export function moverItem(S: Estado, id: string, pid: string, t: number): [Estado, Item, (s: Estado) => Estado] | null {
+  const i = S.itens.find((x) => x.id === id);
+  if (!i || i.projeto === pid || !S.projetos.some((p) => p.id === pid)) return null;
+  const [chave, n] = proximaChave(S, pid);
+  const de = proj(S.projetos, i.projeto), para = proj(S.projetos, pid);
+  const novo: Item = { ...i, id: chave, projeto: pid };
+  registrar(novo, `Movida de ${de.curto} (${id}) para ${para.curto}`, t);
+  const trocarIdeia = (s: Estado, a: string, b: string) => s.ideias.map((d) => (d.promovida === a ? { ...d, promovida: b } : d));
+  const desfazer = (s: Estado): Estado => {
+    if (s.itens.some((x) => x.id === id)) return s;
+    return {
+      ...s,
+      itens: s.itens.map((x) => {
+        if (x.id !== chave) return x;
+        const volta: Item = { ...x, id, projeto: i.projeto };
+        registrar(volta, `Voltou para ${de.curto} (${id})`, t);
+        return volta;
+      }),
+      ideias: trocarIdeia(s, chave, id),
+    };
+  };
+  return [{ ...S, seq: { ...S.seq, [pid]: n }, itens: S.itens.map((x) => (x.id === id ? novo : x)), ideias: trocarIdeia(S, id, chave) }, novo, desfazer];
+}
+
 export function novaIdeia(S: Estado, texto: string, t: number): Estado {
   const seqIdeia = (S.seqIdeia || S.ideias.length) + 1;
   const ideia: Ideia = { id: `ID-${seqIdeia}`, texto, criado: iso(t), promovida: null };

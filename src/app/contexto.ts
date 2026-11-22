@@ -31,6 +31,8 @@ export interface App {
   setFrente: (pid: string) => void;
   setIdeiasFiltro: (f: 'abertas' | 'promovidas') => void;
   abrirFicha: (id: string) => void;
+  /** a demanda aberta na ficha trocou de chave (mudou de projeto): a ficha segue aberta na chave nova */
+  renomearFicha: (de: string, para: string) => void;
   /** abre no projeto do filtro do quadro (ou no primeiro); projetoNovo: direto no projeto recém-criado */
   novaDemanda: (projetoNovo?: string) => void;
   /** abre a gaveta de projetos; 'novo' já abre o cadastro, um id abre a edição */

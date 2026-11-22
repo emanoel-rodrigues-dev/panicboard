@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { adiarPrazo, avancarStatus, criarItem, descartarIdeia, editarPasso, excluirItem, marcarPasso, mudarCampo, promoverIdeia, removerPasso } from './acoes';
+import { adiarPrazo, avancarStatus, moverItem, novaIdeia, criarItem, descartarIdeia, editarPasso, excluirItem, marcarPasso, mudarCampo, promoverIdeia, removerPasso } from './acoes';
 import { avaliar, avaliarTodos, estadoItem, estaPendente } from './motor';
 import { arquivarProjeto, coresDaImagem, criarProjeto, editarProjeto, lerHex, sugerirSigla, tintaPara, validarProjeto } from './projetos';
 import { montarRaias, padraoDaRaia } from './raias';
@@ -262,5 +262,40 @@ describe('adiar o prazo pelo cartão', () => {
     expect(adiarPrazo(S2, sem.id, 1, t)).toBe(S2);
     const [S3, feita] = comPrazo(new Date(2026, 10, 20, 14, 0), 'feito');
     expect(adiarPrazo(S3, feita.id, 1, t)).toBe(S3);
+  });
+});
+
+describe('mover a demanda para outro projeto', () => {
+  const comIdeia = () => promoverIdeia(novaIdeia(exemplo(), 'ideia solta', T), 'ID-1', 'folha', T)!;
+
+  it('ganha a chave do projeto novo, no mesmo lugar, com histórico, e a ideia acompanha', () => {
+    const [S, item] = comIdeia();
+    const pos = S.itens.findIndex((x) => x.id === item.id);
+    const [S2, movido] = moverItem(S, item.id, 'chales', T + H)!;
+    expect(movido.id.startsWith('CH-')).toBe(true);
+    expect(movido.projeto).toBe('chales');
+    expect(S2.itens[pos].id).toBe(movido.id);
+    expect(S2.itens.some((x) => x.id === item.id)).toBe(false);
+    expect(movido.historico.at(-1)!.texto).toContain(item.id);
+    expect(S2.ideias.find((d) => d.id === 'ID-1')!.promovida).toBe(movido.id);
+    expect(S2.seq.chales).toBe(Number(movido.id.split('-')[1]));
+  });
+
+  it('desfazer volta chave e projeto, mantém o que mudou depois e não reaproveita a chave nova', () => {
+    const [S, item] = comIdeia();
+    const [S2, movido, desfazer] = moverItem(S, item.id, 'chales', T)!;
+    const S3 = desfazer(mudarCampo(S2, movido.id, 'titulo', 'Título novo', T));
+    const volta = S3.itens.find((x) => x.id === item.id)!;
+    expect(volta.projeto).toBe('folha');
+    expect(volta.titulo).toBe('Título novo');
+    expect(S3.ideias.find((d) => d.id === 'ID-1')!.promovida).toBe(item.id);
+    const [, outra] = criarItem(S3, { projeto: 'chales', titulo: 'X', status: 'fazer', prioridade: 'media', prazo: null, descricao: '', checklist: [] }, T);
+    expect(outra.id).not.toBe(movido.id);
+  });
+
+  it('mesmo projeto ou projeto inexistente: não move', () => {
+    const S = exemplo();
+    expect(moverItem(S, 'PF-14', 'folha', T)).toBeNull();
+    expect(moverItem(S, 'PF-14', 'nao-existe', T)).toBeNull();
   });
 });
