@@ -372,7 +372,13 @@ main { padding-top: var(--nav); }
 .ficha__id { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--muted); font-size: 14px; }
 .ficha__fechar { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: none; display: grid; place-items: center; cursor: pointer; }
 .ficha__fechar:hover { background: rgba(22, 24, 29, .06); }
-.ficha__h { font-size: 28px; font-stretch: 106%; }
+/* título e detalhes juntos no topo; os dois crescem com o texto (sem alça de redimensionar) */
+.ficha__texto { display: grid; gap: var(--s-3); }
+.campo textarea.ficha__titulo { width: calc(100% + 20px); margin: 0 -10px; min-height: 0; padding: 4px 10px; resize: none; field-sizing: content; overflow: hidden; border-color: transparent; background: none; font-size: 28px; font-weight: 800; font-stretch: 106%; letter-spacing: -.025em; line-height: 1.15; }
+.campo textarea.ficha__titulo:hover { border-color: var(--line-2); }
+.campo textarea.ficha__titulo:focus { border-color: var(--ink); }
+.campo textarea.ficha__titulo::placeholder { color: var(--muted); }
+.campo textarea.ficha__desc { resize: none; field-sizing: content; min-height: 76px; max-height: 50vh; }
 .ficha__reacao { display: grid; grid-template-columns: 148px 1fr; gap: 16px; align-items: center; background: var(--studio); color: var(--studio-ink); border-radius: var(--r-md); padding: 10px; }
 .ficha__reacao .gif { aspect-ratio: 1; }
 .ficha__reacao .tarja { left: 6px; right: 6px; bottom: 6px; }

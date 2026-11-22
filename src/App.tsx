@@ -89,6 +89,8 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
     voltaFoco.current = document.activeElement;
     // monta a gaveta fechada e abre no quadro seguinte: a transição de entrada acontece mesmo ao trocar de uma gaveta para outra
     flushSync(() => { setFicha(alvo); setFichaAberta(false); setAbertura((n) => n + 1); });
+    // a gaveta é a mesma para todas as fichas: cada uma abre do topo, sem herdar a rolagem da anterior
+    document.querySelector('[data-gaveta]')?.scrollTo(0, 0);
     requestAnimationFrame(() => setFichaAberta(true));
     focarDepois(alvo.tipo === 'novo' ? '#f-titulo' : alvo.tipo === 'projetos' && alvo.editando ? '#p-nome' : '.ficha__fechar');
   }, [focarDepois]);

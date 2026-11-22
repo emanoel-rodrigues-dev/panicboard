@@ -37,6 +37,12 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
   // o salvar antes de fechar roda fora do render: lê sempre o texto mais recente
   const textos = useRef({ titulo, descricao });
   useLayoutEffect(() => { textos.current = { titulo, descricao }; });
+  // título e detalhes crescem com o texto: CSS (field-sizing) onde existe; nos outros navegadores, pela altura do conteúdo
+  const campoTitulo = useRef<HTMLTextAreaElement>(null), campoDesc = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    if (CSS.supports('field-sizing', 'content')) return;
+    for (const el of [campoTitulo.current, campoDesc.current]) { if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight + 2}px`; } }
+  }, [titulo, descricao]);
 
   const salvarCampo = (nome: Campo, valor: string) => { if (existente) atualizar((s) => mudarCampo(s, existente.id, nome, valor, t)); };
   const salvarTextos = () => { salvarCampo('titulo', textos.current.titulo); salvarCampo('descricao', textos.current.descricao); };
@@ -134,15 +140,26 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
         <p className="ficha__id">{existente ? <>{`${existente.id} · `}<TagProjeto p={p} /></> : 'Nova demanda'}</p>
         <button className="ficha__fechar" type="button" data-fechar="" aria-label="Fechar a ficha" onClick={onFechar}><Ico nome="fechar" /></button>
       </div>
-      <h2 id="gaveta-h" className="ficha__h">{existente ? existente.titulo : 'O que precisa ser feito?'}</h2>
+      {/* o nome da gaveta para leitores de tela; na tela, o título é o próprio campo grande logo abaixo */}
+      <h2 id="gaveta-h" className="sr">{existente ? existente.titulo : 'Nova demanda'}</h2>
       {r && existente && pedeAtencao(est) && (
         <div className={`ficha__reacao est--${est}`}><Gif key={r.id} r={r} chave={`ficha-${existente.id}`} classe="gif--mini" /><p><strong>{`${prazoTexto(existente, t)}.`}</strong>{` ${REGRAS[est].regra}`}</p></div>
       )}
-      <div className="campo">
-        <label htmlFor="f-titulo">Título</label>
-        <input id="f-titulo" name="titulo" value={titulo} autoComplete="off" aria-describedby="f-titulo-erro" aria-invalid={erroTitulo || undefined}
-          onChange={(e) => { setTitulo(e.target.value); if (e.target.value.trim()) setErroTitulo(false); }} onBlur={() => salvarCampo('titulo', titulo)} />
-        <p className="field__error" id="f-titulo-erro" hidden={!erroTitulo}>Escreva um título para a demanda.</p>
+      <div className="ficha__texto">
+        <div className="campo">
+          <label className="sr" htmlFor="f-titulo">Título</label>
+          <textarea id="f-titulo" ref={campoTitulo} className="ficha__titulo" name="titulo" rows={1} value={titulo} autoComplete="off" placeholder="O que precisa ser feito?"
+            aria-describedby="f-titulo-erro" aria-invalid={erroTitulo || undefined}
+            // o título é uma linha só: Enter cria (ficha nova) ou salva (ficha existente), e quebras coladas viram espaço
+            onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => { if (e.key === 'Enter') { e.preventDefault(); if (novo) e.currentTarget.form?.requestSubmit(); else e.currentTarget.blur(); } }}
+            onChange={(e) => { const v = e.target.value.replace(/\s*\n\s*/g, ' '); setTitulo(v); if (v.trim()) setErroTitulo(false); }} onBlur={() => salvarCampo('titulo', titulo)} />
+          <p className="field__error" id="f-titulo-erro" hidden={!erroTitulo}>Escreva um título para a demanda.</p>
+        </div>
+        <div className="campo">
+          <label htmlFor="f-desc">Detalhes técnicos</label>
+          <textarea id="f-desc" ref={campoDesc} className="ficha__desc" name="descricao" rows={2} value={descricao} placeholder="Contexto, links, passos para reproduzir…"
+            onChange={(e) => setDescricao(e.target.value)} onBlur={() => salvarCampo('descricao', descricao)} />
+        </div>
       </div>
       {(novo || ativos(S.projetos).some((x) => x.id === i.projeto)) && (
         <fieldset className="campo"><legend>Projeto</legend><div className="opcoes">
@@ -169,10 +186,6 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
         <div className="prazo__pop" id="prazo-pop" role="dialog" aria-label="Escolher prazo" hidden={!calAberto}>
           {calAberto && <Calendario valor={prazoLocal} t={t} onEscolher={escolherPrazo} />}
         </div>
-      </div>
-      <div className="campo">
-        <label htmlFor="f-desc">Detalhes técnicos</label>
-        <textarea id="f-desc" name="descricao" rows={5} value={descricao} onChange={(e) => setDescricao(e.target.value)} onBlur={() => salvarCampo('descricao', descricao)} />
       </div>
       <fieldset className="campo"><legend>Checklist</legend>
         <ul className="ck">{i.checklist.map((c, n) => (editando?.indice === n
