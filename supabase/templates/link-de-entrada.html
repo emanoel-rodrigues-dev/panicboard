@@ -50,8 +50,9 @@
                 <td style="background:#0e1015;padding:8px 12px;font-family:'Archivo',Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#ecebe4;">O link vale por 1 hora e funciona uma vez só.</td>
               </tr>
             </table>
-            <p style="margin:28px 0 6px;font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#a2a6af;">Se o botão não abrir, copie este endereço no navegador:</p>
-            <p style="margin:0;font-family:Menlo,Consolas,monospace;font-size:12px;line-height:1.5;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#ffd43b;text-decoration:underline;">{{ .ConfirmationURL }}</a></p>
+            <!-- plano B discreto: não pode disputar atenção com o botão -->
+            <p style="margin:28px 0 4px;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#8b909a;">Se o botão não abrir, copie este endereço no navegador:</p>
+            <p style="margin:0;font-family:Helvetica,Arial,sans-serif;font-size:11px;line-height:1.5;word-break:break-all;overflow-wrap:anywhere;"><a href="{{ .ConfirmationURL }}" style="color:#8b909a;text-decoration:none;">{{ .ConfirmationURL }}</a></p>
           </td>
         </tr>
         <tr>
