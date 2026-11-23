@@ -1,14 +1,16 @@
-import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ClipboardEvent, type DragEvent, type FormEvent, type KeyboardEvent } from 'react';
 import { $, useApp } from '../app/contexto';
 import { useFecharAoSair } from '../app/hooks';
-import { adicionarPasso, criarItem, editarPasso, excluirItem, marcarPasso, moverItem, mudarCampo, removerPasso, type Campo, type NovosDados } from '../domain/acoes';
+import { MAX_ORIGINAL, prepararImagem, soImagens } from '../app/imagem';
+import { adicionarPasso, anexarImagens, criarItem, editarPasso, excluirItem, marcarPasso, moverItem, mudarCampo, removerImagem, removerPasso, type Campo, type NovosDados } from '../domain/acoes';
 import { estadoItem, pedeAtencao, prazoTexto, PRIO, reacao, REGRAS, STATUS, TODOS_STATUS } from '../domain/motor';
 import { ativos, proj } from '../domain/projetos';
 import { fmtCurta, H, isoParaLocal, paraLocal, prazoRotulo } from '../domain/tempo';
-import type { Item, Prioridade } from '../domain/tipos';
+import type { Imagem, Item, Prioridade } from '../domain/tipos';
 import { Calendario } from './Calendario';
 import { Gif } from './Gif';
 import { Ico, TagProjeto, vars } from './Icone';
+import { Imagens } from './Imagens';
 
 export type AlvoFicha = { tipo: 'item'; id: string } | { tipo: 'novo'; projeto: string };
 
@@ -20,10 +22,10 @@ interface Props {
 }
 
 export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
-  const { S, t, atualizar, avisar, abrirFicha, renomearFicha, focarDepois } = useApp();
+  const { S, t, atualizar, avisar, abrirFicha, renomearFicha, focarDepois, imagens: armazem } = useApp();
   const existente = alvo.tipo === 'item' ? S.itens.find((x) => x.id === alvo.id) : undefined;
   const novo = alvo.tipo === 'novo';
-  const [rascunho, setRascunho] = useState<NovosDados>(() => ({ projeto: alvo.tipo === 'novo' ? alvo.projeto : '', titulo: '', status: 'fazer', prioridade: 'media', prazo: new Date(t + 72 * H).toISOString(), descricao: '', checklist: [] }));
+  const [rascunho, setRascunho] = useState<NovosDados>(() => ({ projeto: alvo.tipo === 'novo' ? alvo.projeto : '', titulo: '', status: 'fazer', prioridade: 'media', prazo: new Date(t + 72 * H).toISOString(), descricao: '', checklist: [], imagens: [] }));
   const i: NovosDados & Partial<Item> = existente ?? rascunho;
   const p = proj(S.projetos, i.projeto);
 
@@ -34,6 +36,15 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
   const [passo, setPasso] = useState('');
   const [editando, setEditando] = useState<{ indice: number; texto: string } | null>(null);
   const [calAberto, setCalAberto] = useState(false);
+  const [preparando, setPreparando] = useState(0);
+  const [arrastando, setArrastando] = useState(false);
+  // imagens de uma demanda ainda não criada: se a ficha fechar sem criar, os arquivos saem do armazém
+  const rascunhoImgs = useRef<Imagem[]>([]);
+  const criada = useRef(false);
+  useEffect(() => {
+    if (!novo) return;
+    return () => { if (!criada.current && rascunhoImgs.current.length) armazem.apagar(rascunhoImgs.current.map((m) => m.id)).catch(() => { /* sobra no armazém; não atrapalha */ }); };
+  }, [novo, armazem]);
   // o salvar antes de fechar roda fora do render: lê sempre o texto mais recente
   const textos = useRef({ titulo, descricao });
   useLayoutEffect(() => { textos.current = { titulo, descricao }; });
@@ -105,6 +116,47 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
     }
     $('#f-ck')?.focus();
   };
+  const adicionarImagens = async (arquivos: File[]) => {
+    if (!arquivos.length) return;
+    setPreparando((n) => n + arquivos.length);
+    const prontas: Imagem[] = [];
+    let falhas = 0;
+    for (const f of arquivos) {
+      try {
+        if (f.size > MAX_ORIGINAL) throw new Error('grande demais');
+        const { arquivo, largura, altura } = await prepararImagem(f);
+        const id = crypto.randomUUID();
+        await armazem.guardar(id, arquivo);
+        // print colado vem sempre como "image.png": dá um nome que ajuda a achar depois
+        const nome = f.name && !/^image\.(png|jpe?g|webp)$/i.test(f.name) ? f.name : `Print ${fmtCurta.format(Date.now())}`;
+        prontas.push({ id, nome, largura, altura, em: new Date().toISOString() });
+      } catch (e) { console.error(e); falhas++; }
+      setPreparando((n) => n - 1);
+    }
+    if (prontas.length) {
+      if (novo) { rascunhoImgs.current = [...rascunhoImgs.current, ...prontas]; setRascunho((r) => ({ ...r, imagens: [...(r.imagens ?? []), ...prontas] })); }
+      else atualizar((s) => anexarImagens(s, existente!.id, prontas, t));
+    }
+    if (falhas) avisar(falhas === 1 ? 'Não consegui anexar uma das imagens (arquivo muito grande ou inválido).' : `Não consegui anexar ${falhas} imagens (arquivos muito grandes ou inválidos).`);
+  };
+  const tirarImagem = (m: Imagem) => {
+    if (novo) {
+      rascunhoImgs.current = rascunhoImgs.current.filter((x) => x.id !== m.id);
+      setRascunho((r) => ({ ...r, imagens: (r.imagens ?? []).filter((x) => x.id !== m.id) }));
+      armazem.apagar([m.id]).catch(() => { /* sobra no armazém; não atrapalha */ });
+      return;
+    }
+    const r = removerImagem(S, existente!.id, m.id, t);
+    if (!r) return;
+    atualizar(() => r[0]);
+    avisar(`Imagem removida: ${m.nome}`, { rotulo: 'Desfazer', fn: () => atualizar(r[1]) });
+  };
+  // colar (Cmd+V) e arrastar valem na ficha toda; texto colado segue normal
+  const colar = (e: ClipboardEvent<HTMLFormElement>) => {
+    const fs = soImagens(e.clipboardData.files);
+    if (fs.length) { e.preventDefault(); void adicionarImagens(fs); }
+  };
+  const temArquivo = (e: DragEvent) => [...e.dataTransfer.types].includes('Files');
   const excluir = () => {
     if (!existente) return;
     const r = excluirItem(S, existente.id);
@@ -126,6 +178,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
     const tit = titulo.trim();
     if (!tit) { setErroTitulo(true); $('#f-titulo')?.focus(); return; }
     const [S2, item] = criarItem(S, { ...rascunho, titulo: tit, descricao }, t);
+    criada.current = true;
     atualizar(() => S2);
     onFechar();
     avisar(`${item.id} criada em ${proj(S.projetos, item.projeto).curto}.`, { rotulo: 'Abrir a ficha', fn: () => abrirFicha(item.id) });
@@ -135,7 +188,10 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
   const r = existente && pedeAtencao(est) ? reacao(est, S.girar, existente.id) : null;
 
   return (
-    <form className="ficha" data-ficha="" noValidate style={vars({ '--pc': p.cor })} onSubmit={criar}>
+    <form className="ficha" data-ficha="" noValidate style={vars({ '--pc': p.cor })} onSubmit={criar} onPaste={colar}
+      onDragOver={(e) => { if (temArquivo(e)) { e.preventDefault(); setArrastando(true); } }}
+      onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setArrastando(false); }}
+      onDrop={(e) => { if (temArquivo(e)) { e.preventDefault(); setArrastando(false); void adicionarImagens(soImagens(e.dataTransfer.files)); } }}>
       <div className="ficha__cab">
         <p className="ficha__id">{existente ? <>{`${existente.id} · `}<TagProjeto p={p} /></> : 'Nova demanda'}</p>
         <button className="ficha__fechar" type="button" data-fechar="" aria-label="Fechar a ficha" onClick={onFechar}><Ico nome="fechar" /></button>
@@ -187,6 +243,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
           {calAberto && <Calendario valor={prazoLocal} t={t} onEscolher={escolherPrazo} />}
         </div>
       </div>
+      <Imagens lista={i.imagens ?? []} arrastando={arrastando} ocupado={preparando} onAdicionar={adicionarImagens} onRemover={tirarImagem} />
       <fieldset className="campo"><legend>Checklist</legend>
         <ul className="ck">{i.checklist.map((c, n) => (editando?.indice === n
           ? <li key={n} className="ck__novo">

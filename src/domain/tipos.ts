@@ -16,6 +16,8 @@ export interface Projeto {
 }
 
 export interface Passo { t: string; feito: boolean }
+/** imagem anexada: o arquivo fica no armazém de imagens (navegador ou Supabase Storage), aqui só os dados dela */
+export interface Imagem { id: string; nome: string; largura: number; altura: number; em: string }
 export interface Evento { em: string; texto: string }
 
 export interface Item {
@@ -28,6 +30,8 @@ export interface Item {
   prazo: string | null;
   descricao: string;
   checklist: Passo[];
+  /** ausente nas demandas de antes das imagens */
+  imagens?: Imagem[];
   historico: Evento[];
   criado: string;
   atualizado: string;

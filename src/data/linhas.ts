@@ -20,7 +20,7 @@ const isoOuNulo = (d: string | null) => (d ? iso(d) : null);
 export function estadoParaLinhas(S: Estado): Linhas {
   return {
     projetos: S.projetos.map((p, ordem) => ({ id: p.id, sigla: p.sigla, nome: p.nome, curto: p.curto, cor: p.cor, tinta: p.tinta, arquivado: !!p.arquivado, ordem })),
-    demandas: S.itens.map((i) => ({ id: i.id, projeto: i.projeto, titulo: i.titulo, status: i.status, prioridade: i.prioridade, prazo: i.prazo, descricao: i.descricao, checklist: i.checklist, historico: i.historico, criado: i.criado, atualizado: i.atualizado })),
+    demandas: S.itens.map((i) => ({ id: i.id, projeto: i.projeto, titulo: i.titulo, status: i.status, prioridade: i.prioridade, prazo: i.prazo, descricao: i.descricao, checklist: i.checklist, imagens: i.imagens ?? [], historico: i.historico, criado: i.criado, atualizado: i.atualizado })),
     ideias: S.ideias.map((d, ordem) => ({ id: d.id, texto: d.texto, criado: d.criado, promovida: d.promovida, ordem })),
     contadores: { seq: S.seq, seq_ideia: S.seqIdeia, girar: S.girar },
   };
@@ -33,7 +33,8 @@ export function linhasParaEstado(l: Linhas): Estado {
   return {
     versao: 2,
     projetos: porOrdem(l.projetos).map(({ ordem: _o, arquivado, ...p }) => (arquivado ? { ...p, arquivado } : p)),
-    itens: l.demandas.map((i) => ({ ...i, prazo: isoOuNulo(i.prazo), criado: iso(i.criado), atualizado: iso(i.atualizado) })),
+    // sem imagens, o campo fica de fora (como nas demandas criadas antes delas)
+    itens: l.demandas.map(({ imagens, ...i }) => ({ ...i, ...(imagens?.length ? { imagens } : {}), prazo: isoOuNulo(i.prazo), criado: iso(i.criado), atualizado: iso(i.atualizado) })),
     ideias: porOrdem(l.ideias).map(({ ordem: _o, ...d }) => ({ ...d, criado: iso(d.criado) })),
     seq: l.contadores?.seq ?? {},
     seqIdeia: l.contadores?.seq_ideia ?? 0,

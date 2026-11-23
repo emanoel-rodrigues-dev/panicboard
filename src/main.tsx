@@ -2,15 +2,16 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App, type Conta } from './App';
 import { repositorioLocal, type Carga, type Repositorio } from './data/armazenamento';
+import { imagensLocais, imagensSupabase, type ArmazemImagens } from './data/imagens';
 import './styles.css';
 
 // PWA: só no build (no dev o cache atrapalharia o recarregar)
 if (import.meta.env.PROD && 'serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => { /* sem PWA, o app funciona igual */ });
 
 const raiz = createRoot(document.getElementById('root')!);
-const abrir = (repo: Repositorio, carga: Carga, conta?: Conta) => raiz.render(
+const abrir = (repo: Repositorio, carga: Carga, conta?: Conta, imagens: ArmazemImagens = imagensLocais()) => raiz.render(
   <StrictMode>
-    <App repo={repo} inicial={carga.estado} avisoInicial={carga.aviso} conta={conta} />
+    <App repo={repo} imagens={imagens} inicial={carga.estado} avisoInicial={carga.aviso} conta={conta} />
   </StrictMode>,
 );
 
@@ -44,12 +45,12 @@ if (!url || !chave) {
     const conta: Conta = { email: sessao.user.email ?? '', sair: async () => { await db.auth.signOut(); location.reload(); } };
     const repo = repositorioSupabase(db, { onErro: avisar });
     try {
-      abrir(repo, await repo.carregar(), conta);
+      abrir(repo, await repo.carregar(), conta, imagensSupabase(db, sessao.user.id));
     } catch (e) {
       console.error(e);
       const local = repositorioLocal();
       const carga = await local.carregar();
-      abrir(local, { ...carga, aviso: 'Não consegui abrir a sua conta. Mostrando a cópia deste navegador; as mudanças ficam só aqui até recarregar.' }, conta);
+      abrir(local, { ...carga, aviso: 'Não consegui abrir a sua conta. Mostrando a cópia deste navegador; as mudanças ficam só aqui até recarregar.' }, conta, imagensSupabase(db, sessao.user.id));
     }
   }
 }

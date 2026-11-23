@@ -91,6 +91,7 @@ function Cartao({ i }: { i: Item }) {
         <span className="cartao__pe">
           <span className={`cartao__prazo est-t--${est}`}>{pedeAtencao(est) && <Ico nome={est} />}{prazoTexto(i, t)}</span>
           {modo === 'prazo' && <span className="cartao__status">{STATUS[i.status]}</span>}
+          {!!i.imagens?.length && <span className="cartao__img" data-tip={`${i.imagens.length} ${i.imagens.length === 1 ? 'imagem' : 'imagens'}`}><Ico nome="imagem" /><span>{i.imagens.length}</span><span className="sr">{i.imagens.length === 1 ? ' imagem' : ' imagens'}</span></span>}
           {i.checklist.length > 0 && <span className="cartao__ck">{`${i.checklist.filter((c) => c.feito).length}/${i.checklist.length}`}</span>}
         </span>
       </button>

@@ -3,7 +3,7 @@ import { FLUXO, PRIO, STATUS } from './motor';
 import { proj } from './projetos';
 import { fmtCurta } from './tempo';
 import { tituloDaIdeia } from './texto';
-import type { Estado, Ideia, Item, Prioridade, Regra, Status } from './tipos';
+import type { Estado, Ideia, Imagem, Item, Prioridade, Regra, Status } from './tipos';
 
 export type Campo = 'status' | 'prioridade' | 'prazo' | 'titulo' | 'descricao';
 
@@ -76,7 +76,7 @@ export function adicionarPasso(S: Estado, id: string, texto: string, t: number):
   return trocarItem(S, c);
 }
 
-export type NovosDados = Pick<Item, 'projeto' | 'titulo' | 'status' | 'prioridade' | 'prazo' | 'descricao' | 'checklist'>;
+export type NovosDados = Pick<Item, 'projeto' | 'titulo' | 'status' | 'prioridade' | 'prazo' | 'descricao' | 'checklist' | 'imagens'>;
 
 export function criarItem(S: Estado, dados: NovosDados, t: number, origem = 'Demanda criada'): [Estado, Item] {
   const p = proj(S.projetos, dados.projeto);
@@ -197,3 +197,34 @@ export function excluirItem(S: Estado, id: string): [Estado, (s: Estado) => Esta
   };
   return [{ ...S, itens: S.itens.filter((x) => x.id !== id), ideias: S.ideias.map((d) => (d.promovida === id ? { ...d, promovida: null } : d)) }, desfazer];
 }
+
+export function anexarImagens(S: Estado, id: string, novas: Imagem[], t: number): Estado {
+  const i = S.itens.find((x) => x.id === id);
+  if (!i || !novas.length) return S;
+  const c: Item = { ...i, imagens: [...(i.imagens ?? []), ...novas] };
+  registrar(c, novas.length === 1 ? `Imagem anexada: ${novas[0].nome}` : `${novas.length} imagens anexadas`, t);
+  return trocarItem(S, c);
+}
+
+/** Tira a imagem da demanda e devolve também a função que a recoloca na mesma posição. */
+export function removerImagem(S: Estado, id: string, imagemId: string, t: number): [Estado, (s: Estado) => Estado] | null {
+  const i = S.itens.find((x) => x.id === id);
+  const n = i?.imagens?.findIndex((m) => m.id === imagemId) ?? -1;
+  if (!i || n < 0) return null;
+  const fora = i.imagens![n];
+  const c: Item = { ...i, imagens: i.imagens!.filter((m) => m.id !== imagemId) };
+  registrar(c, `Imagem removida: ${fora.nome}`, t);
+  const desfazer = (s: Estado): Estado => ({
+    ...s,
+    itens: s.itens.map((x) => {
+      if (x.id !== id || x.imagens?.some((m) => m.id === imagemId)) return x;
+      const imagens = [...(x.imagens ?? [])];
+      imagens.splice(Math.min(n, imagens.length), 0, fora);
+      return { ...x, imagens, historico: [...x.historico, { em: iso(t), texto: `Imagem devolvida: ${fora.nome}` }] };
+    }),
+  });
+  return [trocarItem(S, c), desfazer];
+}
+
+/** ids de todas as imagens que alguma demanda ainda usa (o resto pode sair do armazém) */
+export const imagensEmUso = (S: Estado) => new Set(S.itens.flatMap((i) => (i.imagens ?? []).map((m) => m.id)));

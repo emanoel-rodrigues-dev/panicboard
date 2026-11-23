@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react';
+import type { ArmazemImagens } from '../data/imagens';
 import type { Modo } from '../domain/raias';
 import type { Estado } from '../domain/tipos';
 
@@ -19,6 +20,8 @@ export interface App {
   modo: Modo;
   frente: string | null;
   ideiasFiltro: 'abertas' | 'promovidas';
+  /** onde ficam os arquivos das imagens das demandas */
+  imagens: ArmazemImagens;
 
   atualizar: (fn: (S: Estado) => Estado) => void;
   avisar: (msg: string, acao?: AcaoAviso) => void;

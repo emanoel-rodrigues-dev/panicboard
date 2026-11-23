@@ -10,6 +10,7 @@ import { Nav, nomeTema, proximoTema, rotuloRelogio, type Tema } from './componen
 import { Projetos, type Editando } from './components/Projetos';
 import { Rodape, Tabbar } from './components/Rodape';
 import { preferencia, type Repositorio } from './data/armazenamento';
+import { limpezaDeImagens, type ArmazemImagens } from './data/imagens';
 import { avancarStatus } from './domain/acoes';
 import { avaliar, REGRAS, STATUS } from './domain/motor';
 import { ativos, proj } from './domain/projetos';
@@ -22,12 +23,12 @@ import { Quadro } from './screens/Quadro';
 import { Radar } from './screens/Radar';
 
 export interface Conta { email: string; sair: () => void }
-interface Props { repo: Repositorio; inicial: Estado; avisoInicial?: string; conta?: Conta }
+interface Props { repo: Repositorio; imagens: ArmazemImagens; inicial: Estado; avisoInicial?: string; conta?: Conta }
 
 /** depois: 'demanda' quando o cadastro veio do Nova demanda sem nenhum projeto (ao criar, segue para a demanda) */
 type Gaveta = AlvoFicha | { tipo: 'projetos'; editando: Editando; depois?: 'demanda' };
 
-export function App({ repo, inicial, avisoInicial, conta }: Props) {
+export function App({ repo, imagens, inicial, avisoInicial, conta }: Props) {
   const [S, setS] = useState(inicial);
   // relógio simulado: só na memória da sessão, nunca salvo junto com os dados (senão o app abriria no futuro)
   const [deslocamentoH, setDeslocamentoH] = useState(0);
@@ -57,6 +58,9 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
 
   // salva a cada mudança; o primeiro render é o estado que acabou de ser carregado, não há o que regravar
   useEffect(() => { if (primeiro.current) { primeiro.current = false; return; } repo.salvar(S); }, [S, repo]);
+  // imagens que saíram de uso (removidas, demanda excluída) saem do armazém depois de um tempo (dá para desfazer antes)
+  const [limparImagens] = useState(() => limpezaDeImagens(imagens));
+  useEffect(() => { limparImagens(S); }, [S, limparImagens]);
 
   const atualizar = useCallback((fn: (s: Estado) => Estado) => setS(fn), []);
   const avisar = useCallback((msg: string, acao?: AcaoAviso) => {
@@ -200,13 +204,13 @@ export function App({ repo, inicial, avisoInicial, conta }: Props) {
 
   const parado = reduz || pausado;
   const ctx = useMemo<AppCtx>(() => ({
-    S, t, deslocamentoH, rota, parado, reduz, pausado, tocando, modo, frente, ideiasFiltro,
+    S, t, deslocamentoH, rota, parado, reduz, pausado, tocando, modo, frente, ideiasFiltro, imagens,
     atualizar, avisar, focarDepois, avancarItem, abrirFicha, renomearFicha, novaDemanda, abrirProjetos, avancarRelogio, restaurarExemplo,
     alternarGif: (k) => setTocando((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n; }),
     alternarPausa: () => { setPausado((p) => { preferencia.gravar('pausado', p ? '0' : '1'); return !p; }); setTocando(new Set()); },
     setModo: (m) => { setModoEstado(m); preferencia.gravar('modo', m); },
     setFrente, setIdeiasFiltro,
-  }), [S, t, deslocamentoH, rota, parado, reduz, pausado, tocando, modo, frente, ideiasFiltro, atualizar, avisar, focarDepois, avancarItem, abrirFicha, renomearFicha, novaDemanda, abrirProjetos, avancarRelogio, restaurarExemplo]);
+  }), [S, t, deslocamentoH, rota, parado, reduz, pausado, tocando, modo, frente, ideiasFiltro, imagens, atualizar, avisar, focarDepois, avancarItem, abrirFicha, renomearFicha, novaDemanda, abrirProjetos, avancarRelogio, restaurarExemplo]);
 
   return (
     <Contexto.Provider value={ctx}>

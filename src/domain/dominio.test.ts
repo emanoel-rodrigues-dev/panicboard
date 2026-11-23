@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { adiarPrazo, avancarStatus, moverItem, novaIdeia, criarItem, descartarIdeia, editarPasso, excluirItem, marcarPasso, mudarCampo, promoverIdeia, removerPasso } from './acoes';
+import { adiarPrazo, anexarImagens, avancarStatus, imagensEmUso, moverItem, novaIdeia, removerImagem, criarItem, descartarIdeia, editarPasso, excluirItem, marcarPasso, mudarCampo, promoverIdeia, removerPasso } from './acoes';
 import { avaliar, avaliarTodos, estadoItem, estaPendente } from './motor';
 import { arquivarProjeto, coresDaImagem, criarProjeto, editarProjeto, lerHex, sugerirSigla, tintaPara, validarProjeto } from './projetos';
 import { montarRaias, padraoDaRaia } from './raias';
@@ -297,5 +297,32 @@ describe('mover a demanda para outro projeto', () => {
     const S = exemplo();
     expect(moverItem(S, 'PF-14', 'folha', T)).toBeNull();
     expect(moverItem(S, 'PF-14', 'nao-existe', T)).toBeNull();
+  });
+});
+
+describe('imagens na demanda', () => {
+  const img = (id: string) => ({ id, nome: `${id}.png`, largura: 800, altura: 600, em: new Date(T).toISOString() });
+
+  it('anexa no fim, com histórico, e conta como em uso', () => {
+    const S = anexarImagens(anexarImagens(exemplo(), 'PF-14', [img('a')], T), 'PF-14', [img('b'), img('c')], T);
+    const i = S.itens.find((x) => x.id === 'PF-14')!;
+    expect(i.imagens!.map((m) => m.id)).toEqual(['a', 'b', 'c']);
+    expect(i.historico.at(-1)!.texto).toBe('2 imagens anexadas');
+    expect([...imagensEmUso(S)].sort()).toEqual(['a', 'b', 'c']);
+  });
+
+  it('remover e desfazer devolve a imagem na mesma posição', () => {
+    const S = anexarImagens(exemplo(), 'PF-14', [img('a'), img('b'), img('c')], T);
+    const [S2, desfazer] = removerImagem(S, 'PF-14', 'b', T)!;
+    expect(imagensEmUso(S2).has('b')).toBe(false);
+    const S3 = desfazer(S2);
+    expect(S3.itens.find((x) => x.id === 'PF-14')!.imagens!.map((m) => m.id)).toEqual(['a', 'b', 'c']);
+    expect(desfazer(S3)).toEqual(S3);
+  });
+
+  it('a imagem acompanha a demanda criada e a movida de projeto', () => {
+    const [S, item] = criarItem(exemplo(), { projeto: 'folha', titulo: 'Com print', status: 'fazer', prioridade: 'media', prazo: null, descricao: '', checklist: [], imagens: [img('p')] }, T);
+    const [S2] = moverItem(S, item.id, 'chales', T)!;
+    expect(imagensEmUso(S2).has('p')).toBe(true);
   });
 });
