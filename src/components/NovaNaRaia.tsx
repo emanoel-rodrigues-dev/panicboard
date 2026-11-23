@@ -24,6 +24,7 @@ export function NovaNaRaia({ raia, nomeRaia, aberta, onAbrir, onFechar, projeto,
   const { S, t, reduz, atualizar, avisar, abrirFicha } = useApp();
   const [titulo, setTitulo] = useState('');
   const [erro, setErro] = useState(false);
+  const [semPrazo, setSemPrazo] = useState(false);
   const [criadas, setCriadas] = useState(0);
   const campo = useRef<HTMLInputElement>(null);
   const acoes = useRef<HTMLDivElement>(null);
@@ -50,6 +51,7 @@ export function NovaNaRaia({ raia, nomeRaia, aberta, onAbrir, onFechar, projeto,
 
   if (!padrao) return null;
   const id = `nova-${raia}`;
+  const porStatus = raia === 'fazer' || raia === 'fazendo' || raia === 'revisao';
 
   if (!aberta) {
     return (
@@ -61,13 +63,13 @@ export function NovaNaRaia({ raia, nomeRaia, aberta, onAbrir, onFechar, projeto,
 
   const fechar = (devolverFoco: boolean) => {
     devolver.current = devolverFoco;
-    setTitulo(''); setErro(false); onFechar();
+    setTitulo(''); setErro(false); setSemPrazo(false); onFechar();
   };
   const criar = (e: FormEvent) => {
     e.preventDefault();
     const tit = titulo.trim();
     if (!tit) { setErro(true); campo.current?.focus(); return; }
-    const [S2, item] = criarItem(S, { projeto, titulo: tit, prioridade: 'media', descricao: '', checklist: [], ...padrao }, t);
+    const [S2, item] = criarItem(S, { projeto, titulo: tit, prioridade: 'media', descricao: '', checklist: [], ...padrao, prazo: semPrazo ? null : padrao.prazo }, t);
     atualizar(() => S2);
     setTitulo(''); setCriadas((n) => n + 1);
     avisar(`${item.id} criada em ${proj(S.projetos, projeto).curto}.`, { rotulo: 'Abrir a ficha', fn: () => abrirFicha(item.id) });
@@ -94,7 +96,11 @@ export function NovaNaRaia({ raia, nomeRaia, aberta, onAbrir, onFechar, projeto,
           ))}
         </div></fieldset>
       )}
-      <p className="raia__dica" id={`${id}-dica`}>{`${STATUS[padrao.status]} · ${padrao.prazo ? `prazo ${fmtCurta.format(Date.parse(padrao.prazo))}` : 'sem prazo'}`}</p>
+      <div className="raia__dicalinha">
+        <p className="raia__dica" id={`${id}-dica`}>{`${STATUS[padrao.status]} · ${padrao.prazo && !semPrazo ? `prazo ${fmtCurta.format(Date.parse(padrao.prazo))}` : 'sem prazo'}`}</p>
+        {/* nas colunas por status o prazo é só uma sugestão; nas por prazo a coluna define a data */}
+        {porStatus && <button type="button" className="chip" data-raia-sem-prazo={raia} aria-pressed={semPrazo} onClick={() => setSemPrazo((v) => !v)}>Sem prazo</button>}
+      </div>
       <div className="btn-row raia__acoes" ref={acoes}>
         <button className="btn btn--primary" type="submit">Adicionar</button>
         <button className="btn btn--secondary" type="button" onClick={() => fechar(true)}>Cancelar</button>

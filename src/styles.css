@@ -326,6 +326,7 @@ main { padding-top: var(--nav); }
 .raia__proj { border: 0; padding: 0; margin: 0; min-width: 0; }
 .raia__proj .opcoes { gap: 6px; }
 .raia__proj .opc span { min-height: 36px; padding: 0 12px; font-size: 14px; }
+.raia__dicalinha { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 8px; }
 .raia__dica { font-size: 13px; color: var(--muted); }
 .raia__acoes { gap: 8px; }
 .raia__acoes .btn { --bh: 40px; flex: 1; padding: 0 14px; }
@@ -516,6 +517,9 @@ main { padding-top: var(--nav); }
 .opc--prio input:checked + span .ico { color: inherit; }
 .campo__rot { font-size: 14px; font-weight: 600; }
 .prazo { position: relative; }
+.prazo__linha { display: flex; flex-wrap: wrap; gap: 8px; }
+.prazo__linha .prazo__btn { flex: 1 1 300px; width: auto; }
+.prazo__sem { --bh: 48px; flex: 0 0 auto; }
 .prazo__btn { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid var(--line-2); border-radius: var(--r-sm); background: var(--campo-bg); font-size: 16px; font-weight: 500; text-align: left; cursor: pointer; transition: border-color 140ms var(--ease); }
 .prazo__btn:hover, .prazo__btn[aria-expanded="true"] { border-color: var(--ink); }
 .prazo__btn .ico { color: var(--muted); }

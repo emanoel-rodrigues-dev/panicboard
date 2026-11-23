@@ -235,9 +235,12 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
       </div></fieldset>
       <div className="campo prazo" data-prazo="">
         <span className="campo__rot" id="f-prazo-rot">Prazo</span>
-        <button type="button" className="prazo__btn" data-prazo-abrir="" aria-expanded={calAberto} aria-controls="prazo-pop" aria-labelledby="f-prazo-rot f-prazo-txt" onClick={() => setCalAberto((v) => !v)}>
-          <Ico nome="calendario" /><span id="f-prazo-txt">{prazoRotulo(prazoLocal, t)}</span>
-        </button>
+        <div className="prazo__linha">
+          <button type="button" className="prazo__btn" data-prazo-abrir="" aria-expanded={calAberto} aria-controls="prazo-pop" aria-labelledby="f-prazo-rot f-prazo-txt" onClick={() => setCalAberto((v) => !v)}>
+            <Ico nome="calendario" /><span id="f-prazo-txt">{prazoRotulo(prazoLocal, t)}</span>
+          </button>
+          {prazoLocal && <button type="button" className="btn btn--secondary prazo__sem" data-prazo-sem="" onClick={() => { setCalAberto(false); escolherPrazo(null, false); $('[data-prazo-abrir]')?.focus(); }}>Sem prazo</button>}
+        </div>
         <input type="hidden" name="prazo" id="f-prazo" value={prazoLocal} />
         <div className="prazo__pop" id="prazo-pop" role="dialog" aria-label="Escolher prazo" hidden={!calAberto}>
           {calAberto && <Calendario valor={prazoLocal} t={t} onEscolher={escolherPrazo} />}
