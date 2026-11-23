@@ -42,6 +42,8 @@ export interface App {
   abrirProjetos: (editando?: string | null) => void;
   avancarRelogio: (h: number) => void;
   restaurarExemplo: () => void;
+  /** sem conta: os dados ficam só neste navegador (a demonstração pública) */
+  demonstracao: boolean;
 }
 
 export const Contexto = createContext<App | null>(null);

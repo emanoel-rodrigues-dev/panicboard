@@ -15,7 +15,7 @@ export function rotuloRelogio(h: number) {
 }
 
 export function Nav({ tema, onTema }: { tema: Tema; onTema: () => void }) {
-  const { rota, t, deslocamentoH, avancarRelogio, restaurarExemplo, novaDemanda } = useApp();
+  const { rota, t, deslocamentoH, avancarRelogio, restaurarExemplo, novaDemanda, demonstracao } = useApp();
   const [relogio, setRelogio] = useState(false);
   const [nome, , proxNome] = NOMES[tema];
 
@@ -51,7 +51,8 @@ export function Nav({ tema, onTema }: { tema: Tema; onTema: () => void }) {
                   <button key={h} className="btn btn--secondary" type="button" data-avancar={h} onClick={() => avancar(h)}>{r}</button>
                 ))}
               </div>
-              <button className="link relogio__reset" type="button" data-restaurar="" onClick={() => { setRelogio(false); restaurarExemplo(); }}>Restaurar dados de exemplo</button>
+              {/* na conta isso trocaria os dados reais pelos de exemplo: só a demonstração tem */}
+              {demonstracao && <button className="link relogio__reset" type="button" data-restaurar="" onClick={() => { setRelogio(false); restaurarExemplo(); }}>Restaurar dados de exemplo</button>}
             </div>
           </div>
           <button className="btn btn--primary nav__cta" type="button" data-nova="" onClick={() => novaDemanda()}>

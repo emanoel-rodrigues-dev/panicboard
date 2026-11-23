@@ -206,11 +206,12 @@ export function App({ repo, imagens, inicial, avisoInicial, conta }: Props) {
   const ctx = useMemo<AppCtx>(() => ({
     S, t, deslocamentoH, rota, parado, reduz, pausado, tocando, modo, frente, ideiasFiltro, imagens,
     atualizar, avisar, focarDepois, avancarItem, abrirFicha, renomearFicha, novaDemanda, abrirProjetos, avancarRelogio, restaurarExemplo,
+    demonstracao: !conta,
     alternarGif: (k) => setTocando((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n; }),
     alternarPausa: () => { setPausado((p) => { preferencia.gravar('pausado', p ? '0' : '1'); return !p; }); setTocando(new Set()); },
     setModo: (m) => { setModoEstado(m); preferencia.gravar('modo', m); },
     setFrente, setIdeiasFiltro,
-  }), [S, t, deslocamentoH, rota, parado, reduz, pausado, tocando, modo, frente, ideiasFiltro, imagens, atualizar, avisar, focarDepois, avancarItem, abrirFicha, renomearFicha, novaDemanda, abrirProjetos, avancarRelogio, restaurarExemplo]);
+  }), [S, t, deslocamentoH, rota, parado, reduz, pausado, tocando, modo, frente, ideiasFiltro, imagens, atualizar, avisar, focarDepois, avancarItem, abrirFicha, renomearFicha, novaDemanda, abrirProjetos, avancarRelogio, restaurarExemplo, conta]);
 
   return (
     <Contexto.Provider value={ctx}>
