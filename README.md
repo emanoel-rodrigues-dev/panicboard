@@ -24,7 +24,7 @@ https://github.com/user-attachments/assets/0b4f6a2d-b3df-4aaf-94ac-ebb51b80c549
 - **Projetos:** cadastre os seus, com nome, sigla e cor. A cor pode vir da lista, de um código hex ou da logo do projeto. As demandas ganham código no estilo do Jira (`PF-14`).
 - **Ideias:** um lugar para anotar o que aparece no meio do dia. Uma ideia vira demanda com um clique.
 - **Motor de reações:** 4 regras de tempo (atrasado, vence em 24 h, parado há 48 h, ciclo entregue), cada uma com o seu GIF. Um relógio simulado deixa ver as regras mudando sem esperar.
-- **Avisos de prazo:** notificação quando uma demanda atrasa ou vence em 24 h, com o app aberto ou instalado.
+- **Avisos:** notificação quando uma demanda atrasa, vence em 24 h ou fica parada há 48 h em Fazendo ou Em revisão (o cartão também mostra "Parado há…"), com o app aberto ou instalado.
 - **Instala no celular (PWA)** e abre sem rede. Tem tema claro e escuro, e funciona com teclado e leitor de tela.
 
 | Quadro | Ficha |

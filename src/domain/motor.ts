@@ -19,6 +19,8 @@ export const pendentesDoProjeto = (itens: Item[], pid: string) => itens.filter((
 export const PRAZO_APERTADO_MS = 24 * H;
 /** sem nada se mexer por este tempo, o trabalho em andamento conta como parado */
 export const PARADO_MS = 48 * H;
+/** a demanda em andamento (fazendo ou em revisão) que ninguém mexe há PARADO_MS: a mesma régua do projeto parado, agora por cartão */
+export const estaParado = (i: Item, t: number) => (i.status === 'fazendo' || i.status === 'revisao') && t - Date.parse(i.atualizado) >= PARADO_MS;
 /** o que não tem prazo vai depois de qualquer data na ordenação */
 const SEM_PRAZO = Number.MAX_SAFE_INTEGER;
 

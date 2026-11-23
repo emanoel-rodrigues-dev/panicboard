@@ -5,9 +5,10 @@ import { Adiar } from '../components/Adiar';
 import { Ico, TagProjeto, vars } from '../components/Icone';
 import { NovaNaRaia } from '../components/NovaNaRaia';
 import { proximoStatus } from '../domain/acoes';
-import { avaliar, estadoItem, pedeAtencao, estaPendente, pendentesDoProjeto, prazoTexto, PRIO, REGRAS, STATUS } from '../domain/motor';
+import { avaliar, estadoItem, estaParado, pedeAtencao, estaPendente, pendentesDoProjeto, prazoTexto, PRIO, REGRAS, STATUS } from '../domain/motor';
 import { ativos, proj } from '../domain/projetos';
 import { montarRaias } from '../domain/raias';
+import { dur } from '../domain/tempo';
 import type { Item } from '../domain/tipos';
 
 export function Quadro() {
@@ -93,6 +94,7 @@ function Cartao({ i }: { i: Item }) {
         <span className="cartao__tit">{i.titulo}</span>
         <span className="cartao__pe">
           <span className={`cartao__prazo est-t--${est}`}>{pedeAtencao(est) && <Ico nome={est} />}{prazoTexto(i, t)}</span>
+          {estaParado(i, t) && <span className="cartao__prazo est-t--abandonado"><Ico nome="abandonado" />{`Parado há ${dur(t - Date.parse(i.atualizado))}`}</span>}
           {modo === 'prazo' && <span className="cartao__status">{STATUS[i.status]}</span>}
           {!!i.imagens?.length && <span className="cartao__img" data-tip={`${i.imagens.length} ${i.imagens.length === 1 ? 'imagem' : 'imagens'}`}><Ico nome="imagem" /><span>{i.imagens.length}</span><span className="sr">{i.imagens.length === 1 ? ' imagem' : ' imagens'}</span></span>}
           {i.checklist.length > 0 && <span className="cartao__ck">{`${i.checklist.filter((c) => c.feito).length}/${i.checklist.length}`}</span>}

@@ -228,7 +228,7 @@ main { padding-top: var(--nav); }
 .est--atrasado { --ec: var(--atrasado); } .est--prazo_apertado { --ec: var(--prazo); } .est--abandonado { --ec: var(--abandonado); } .est--em_dia { --ec: var(--emdia); } .est--normal { --ec: var(--muted); }
 .canal__estado.est--atrasado, .est-t--atrasado { color: var(--atrasado-t); }
 .canal__estado.est--prazo_apertado, .est-t--prazo_apertado { color: var(--prazo-t); }
-.canal__estado.est--abandonado { color: var(--abandonado-t); }
+.canal__estado.est--abandonado, .est-t--abandonado { color: var(--abandonado-t); }
 .canal__estado.est--em_dia, .est-t--feito { color: var(--emdia-t); }
 .est-t--normal { color: var(--muted); }
 
