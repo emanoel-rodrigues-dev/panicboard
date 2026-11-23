@@ -5,7 +5,8 @@ import { MAX_ORIGINAL, prepararImagem, soImagens } from '../app/imagem';
 import { adicionarPasso, anexarImagens, criarItem, editarPasso, excluirItem, marcarPasso, moverItem, mudarCampo, removerImagem, removerPasso, type Campo, type NovosDados } from '../domain/acoes';
 import { estadoItem, pedeAtencao, prazoTexto, PRIO, reacao, REGRAS, STATUS, TODOS_STATUS } from '../domain/motor';
 import { ativos, proj } from '../domain/projetos';
-import { fmtCurta, H, isoParaLocal, paraLocal, prazoRotulo } from '../domain/tempo';
+import { as18h } from '../domain/raias';
+import { fmtCurta, isoParaLocal, paraLocal, prazoRotulo } from '../domain/tempo';
 import type { Imagem, Item, Prioridade } from '../domain/tipos';
 import { Calendario } from './Calendario';
 import { Gif } from './Gif';
@@ -25,7 +26,7 @@ export function Ficha({ alvo, onFechar, registrarPendente }: Props) {
   const { S, t, atualizar, avisar, abrirFicha, renomearFicha, focarDepois, imagens: armazem } = useApp();
   const existente = alvo.tipo === 'item' ? S.itens.find((x) => x.id === alvo.id) : undefined;
   const novo = alvo.tipo === 'novo';
-  const [rascunho, setRascunho] = useState<NovosDados>(() => ({ projeto: alvo.tipo === 'novo' ? alvo.projeto : '', titulo: '', status: 'fazer', prioridade: 'media', prazo: new Date(t + 72 * H).toISOString(), descricao: '', checklist: [], imagens: [] }));
+  const [rascunho, setRascunho] = useState<NovosDados>(() => ({ projeto: alvo.tipo === 'novo' ? alvo.projeto : '', titulo: '', status: 'fazer', prioridade: 'media', prazo: as18h(t, 3), descricao: '', checklist: [], imagens: [] }));
   const i: NovosDados & Partial<Item> = existente ?? rascunho;
   const p = proj(S.projetos, i.projeto);
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { adiarPrazo, anexarImagens, avancarStatus, imagensEmUso, moverItem, novaIdeia, removerImagem, criarItem, descartarIdeia, editarPasso, excluirItem, marcarPasso, mudarCampo, promoverIdeia, removerPasso } from './acoes';
 import { avaliar, avaliarTodos, estadoItem, estaPendente } from './motor';
 import { arquivarProjeto, coresDaImagem, criarProjeto, editarProjeto, lerHex, sugerirSigla, tintaPara, validarProjeto } from './projetos';
-import { montarRaias, padraoDaRaia } from './raias';
+import { as18h, montarRaias, padraoDaRaia } from './raias';
 import { montarExemplo } from './seed';
 import { H } from './tempo';
 import { trechosComTags, tituloDaIdeia } from './texto';
@@ -226,6 +226,12 @@ describe('criar na coluna do quadro', () => {
     const t = horas[1];
     for (const s of ['fazer', 'fazendo', 'revisao'] as const) expect(padraoDaRaia(s, t)).toMatchObject({ status: s, prazo: expect.any(String) });
     expect(padraoDaRaia('backlog', t)).toEqual({ status: 'backlog', prazo: null });
+  });
+
+  it('prazo padrão da ficha nova: daqui a 3 dias, sempre às 18:00 (sem minutos quebrados)', () => {
+    const t = new Date(2026, 10, 23, 8, 27, 41).getTime();
+    const d = new Date(as18h(t, 3));
+    expect([d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds()]).toEqual([2026, 10, 26, 18, 0, 0]);
   });
 
   it('Atrasadas, Entregues e Feito não têm criação', () => {

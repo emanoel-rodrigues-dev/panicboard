@@ -29,7 +29,7 @@ export function montarRaias(itens: Item[], modo: Modo, t: number): Raia[] {
 }
 
 /** dia + dias, às 18:00 locais (o horário padrão dos atalhos do calendário) */
-function as18h(t: number, dias: number): string {
+export function as18h(t: number, dias: number): string {
   const d = new Date(t); d.setDate(d.getDate() + dias); d.setHours(18, 0, 0, 0);
   return d.toISOString();
 }
