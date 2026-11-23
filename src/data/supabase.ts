@@ -3,7 +3,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Estado } from '../domain/tipos';
 import { armazemLocal, lerEstado, repositorioLocal, type Repositorio } from './armazenamento';
-import { diferenca, estadoParaLinhas, linhasParaEstado, linhasVazias, type Linhas } from './linhas';
+import { COLUNAS_DEMANDA, diferenca, estadoParaLinhas, linhasParaEstado, linhasVazias, type Linhas } from './linhas';
 
 const TABELAS = ['projetos', 'demandas', 'ideias'] as const;
 const ATRASO = 600;
@@ -16,7 +16,7 @@ export interface OpcoesSupabase {
 async function lerLinhas(db: SupabaseClient): Promise<Linhas> {
   const [p, d, i, c] = await Promise.all([
     db.from('projetos').select('id, sigla, nome, curto, cor, tinta, arquivado, ordem'),
-    db.from('demandas').select('id, projeto, titulo, status, prioridade, prazo, descricao, checklist, historico, criado, atualizado'),
+    db.from('demandas').select(COLUNAS_DEMANDA),
     db.from('ideias').select('id, texto, criado, promovida, ordem'),
     db.from('contadores').select('seq, seq_ideia, girar').maybeSingle(),
   ]);

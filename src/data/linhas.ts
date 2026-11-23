@@ -6,6 +6,9 @@ export type LinhaDemanda = Item;
 export interface LinhaIdeia extends Ideia { ordem: number }
 export interface LinhaContadores { seq: Record<string, number>; seq_ideia: number; girar: Estado['girar'] }
 
+/** colunas que a leitura da demanda pede ao banco: tem que cobrir tudo que o app grava (o teste confere) */
+export const COLUNAS_DEMANDA = 'id, projeto, titulo, status, prioridade, prazo, descricao, checklist, imagens, historico, criado, atualizado';
+
 export interface Linhas {
   projetos: LinhaProjeto[];
   demandas: LinhaDemanda[];

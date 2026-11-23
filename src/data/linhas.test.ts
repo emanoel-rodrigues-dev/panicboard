@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { arquivarProjeto } from '../domain/projetos';
 import { montarExemplo } from '../domain/seed';
-import { diferenca, estadoParaLinhas, linhasParaEstado, linhasVazias } from './linhas';
+import { COLUNAS_DEMANDA, diferenca, estadoParaLinhas, linhasParaEstado, linhasVazias } from './linhas';
 
 const T = Date.parse('2026-11-16T15:00:00Z');
 
@@ -9,6 +9,11 @@ describe('estado <-> linhas do Supabase', () => {
   it('ida e volta devolve o mesmo estado, com a ordem e o arquivado', () => {
     const S = arquivarProjeto(montarExemplo(T), 'chales', true);
     expect(linhasParaEstado(estadoParaLinhas(S))).toEqual(S);
+  });
+
+  it('a leitura da demanda pede ao banco todas as colunas que o app grava (senão o dado some na releitura)', () => {
+    const gravadas = Object.keys(estadoParaLinhas(montarExemplo(T)).demandas[0]).sort();
+    expect(COLUNAS_DEMANDA.split(',').map((c) => c.trim()).sort()).toEqual(gravadas);
   });
 
   it('aceita as datas no formato do Postgres', () => {
