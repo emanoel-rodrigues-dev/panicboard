@@ -326,9 +326,10 @@ main { padding-top: var(--nav); }
 .raia__proj { border: 0; padding: 0; margin: 0; min-width: 0; }
 .raia__proj .opcoes { gap: 6px; }
 .raia__proj .opc span { min-height: 36px; padding: 0 12px; font-size: 14px; }
+@media (prefers-reduced-motion: no-preference) { .raia__nova { animation: cair 200ms var(--ease); } }
 .raia__dicalinha { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 8px; }
 .raia__dica { font-size: 13px; color: var(--muted); }
-.raia__acoes { gap: 8px; }
+.raia__acoes { gap: 8px; scroll-margin-block-end: 12px; }
 .raia__acoes .btn { --bh: 40px; flex: 1; padding: 0 14px; }
 /* com mouse, os atalhos do quadro aparecem ao passar o mouse ou com o foco do teclado; no toque ficam sempre visíveis */
 @media (hover: hover) and (pointer: fine) {

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useAnimarCartoes } from '../app/animarCartoes';
 import { useApp } from '../app/contexto';
 import { Adiar } from '../components/Adiar';
 import { Ico, TagProjeto, vars } from '../components/Icone';
@@ -10,7 +11,7 @@ import { montarRaias } from '../domain/raias';
 import type { Item } from '../domain/tipos';
 
 export function Quadro() {
-  const { S, t, rota, modo, setModo, abrirProjetos } = useApp();
+  const { S, t, rota, modo, setModo, abrirProjetos, reduz } = useApp();
   const lista = ativos(S.projetos);
   // projeto arquivado ou inexistente na URL cai em "Todos"
   const filtro = lista.some((p) => p.id === rota.sub) ? rota.sub : 'todos';
@@ -19,6 +20,8 @@ export function Quadro() {
   const visiveis = S.itens.filter((i) => lista.some((p) => p.id === i.projeto));
   const itens = visiveis.filter((i) => filtro === 'todos' || i.projeto === filtro);
   const raias = montarRaias(itens, modo, t);
+  const quadro = useRef<HTMLDivElement>(null);
+  useAnimarCartoes(quadro, `${modo}|${filtro}`, reduz);
   // criação direto na coluna: uma de cada vez; em "Todos", o projeto é escolhido ali e fica para a próxima
   const [compondo, setCompondo] = useState<string | null>(null);
   const [projNovo, setProjNovo] = useState<string | null>(null);
@@ -52,7 +55,7 @@ export function Quadro() {
             <div className="btn-row"><button className="btn btn--primary" type="button" onClick={() => abrirProjetos('novo')}>Cadastrar projeto</button></div>
           </div>
         )}
-        <div className="raias" data-raias="" hidden={lista.length === 0}>
+        <div className="raias" ref={quadro} data-raias="" hidden={lista.length === 0}>
           {raias.map((r) => (
             <section key={r.id} className="raia" aria-labelledby={`raia-${r.id}`}>
               <h2 className="raia__h" id={`raia-${r.id}`}>{r.est && <Ico nome={r.est} classe={`est-t--${r.est}`} />}<span>{r.nome}</span><span className="raia__n">{r.itens.length}</span></h2>
@@ -77,7 +80,7 @@ function Cartao({ i }: { i: Item }) {
   const est = estadoItem(i, t);
   const prox = proximoStatus(i.status);
   return (
-    <article className={`cartao est-c--${est}`} style={vars({ '--pc': p.cor })}>
+    <article className={`cartao est-c--${est}`} data-cartao={i.id} style={vars({ '--pc': p.cor })}>
       <button className="cartao__abrir" type="button" data-abrir={i.id} onClick={() => abrirFicha(i.id)}>
         <span className="cartao__topo">
           <span className="cartao__id">{i.id}</span>
