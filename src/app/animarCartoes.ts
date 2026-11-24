@@ -4,6 +4,9 @@ const ESPERA = 'cubic-bezier(.2, .8, .2, 1)';
 /** abaixo disso é só o cartão assentando (hover, arredondamento), não uma mudança de lugar */
 const LIMITE = 4;
 
+/** cartões que já chegam animados por outro lado (o fantasma do arrastar): o deslize deles é pulado uma vez */
+export const pularAnimacao = new Set<string>();
+
 type Posicoes = Map<string, { x: number; y: number }>;
 
 /**
@@ -29,6 +32,7 @@ export function useAnimarCartoes(quadro: RefObject<HTMLElement | null>, chave: s
     if (reduz || !ant || ant.chave !== chave) return;
     for (const el of cartoes) {
       const id = el.dataset.cartao!;
+      if (pularAnimacao.delete(id)) continue;
       const velha = ant.pos.get(id);
       if (!velha) {
         // quadro que ainda estava vazio (carregando) não conta: só entram cartões criados com o quadro já cheio

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useAnimarCartoes } from '../app/animarCartoes';
+import { useArrastarCartoes } from '../app/arrastarCartoes';
 import { useApp } from '../app/contexto';
 import { Adiar } from '../components/Adiar';
 import { Ico, TagProjeto, vars } from '../components/Icone';
@@ -7,12 +8,12 @@ import { NovaNaRaia } from '../components/NovaNaRaia';
 import { proximoStatus } from '../domain/acoes';
 import { avaliar, estadoItem, estaParado, pedeAtencao, estaPendente, pendentesDoProjeto, prazoTexto, PRIO, REGRAS, STATUS } from '../domain/motor';
 import { ativos, proj } from '../domain/projetos';
-import { montarRaias } from '../domain/raias';
+import { desfazerSoltar, montarRaias, soltarNaRaia } from '../domain/raias';
 import { dur } from '../domain/tempo';
 import type { Item } from '../domain/tipos';
 
 export function Quadro() {
-  const { S, t, rota, modo, setModo, abrirProjetos, reduz } = useApp();
+  const { S, t, rota, modo, setModo, abrirProjetos, reduz, atualizar, avisar } = useApp();
   const lista = ativos(S.projetos);
   // projeto arquivado ou inexistente na URL cai em "Todos"
   const filtro = lista.some((p) => p.id === rota.sub) ? rota.sub : 'todos';
@@ -23,6 +24,26 @@ export function Quadro() {
   const raias = montarRaias(itens, modo, t);
   const quadro = useRef<HTMLDivElement>(null);
   useAnimarCartoes(quadro, `${modo}|${filtro}`, reduz);
+  // arrastar e soltar: a coluna do soltar decide status (por status) ou prazo (por prazo); sempre dá para desfazer
+  useArrastarCartoes(quadro, {
+    reduz,
+    aceita: (id, raia) => soltarNaRaia(S, id, raia, modo, t) !== null,
+    soltar: (id, raia) => {
+      const S2 = soltarNaRaia(S, id, raia, modo, t);
+      const antes = S.itens.find((x) => x.id === id);
+      const depois = S2?.itens.find((x) => x.id === id);
+      if (!S2 || !antes || !depois) return;
+      atualizar(() => S2);
+      const mudouStatus = depois.status !== antes.status;
+      const fechou = mudouStatus && avaliar(S2.itens, antes.projeto, t).regra === 'em_dia';
+      avisar(
+        mudouStatus
+          ? `${id} foi para ${STATUS[depois.status]}.${fechou ? ` ${proj(S.projetos, antes.projeto).curto} fechou o ciclo.` : ''}`
+          : `${id} agora: ${prazoTexto(depois, t).toLowerCase()}.`,
+        { rotulo: 'Desfazer', fn: () => atualizar((s) => desfazerSoltar(s, antes, t)) },
+      );
+    },
+  });
   // criação direto na coluna: uma de cada vez; em "Todos", o projeto é escolhido ali e fica para a próxima
   const [compondo, setCompondo] = useState<string | null>(null);
   const [projNovo, setProjNovo] = useState<string | null>(null);
@@ -58,7 +79,7 @@ export function Quadro() {
         )}
         <div className="raias" ref={quadro} data-raias="" hidden={lista.length === 0}>
           {raias.map((r) => (
-            <section key={r.id} className="raia" aria-labelledby={`raia-${r.id}`}>
+            <section key={r.id} className="raia" data-raia={r.id} aria-labelledby={`raia-${r.id}`}>
               <h2 className="raia__h" id={`raia-${r.id}`}>{r.est && <Ico nome={r.est} classe={`est-t--${r.est}`} />}<span>{r.nome}</span><span className="raia__n">{r.itens.length}</span></h2>
               <div className="raia__lista">
                 {r.itens.length ? r.itens.map((i) => <Cartao key={i.id} i={i} />) : <p className="raia__vazia">{r.id === 'atrasadas' ? 'Nada atrasado. Siga assim.' : 'Vazio.'}</p>}

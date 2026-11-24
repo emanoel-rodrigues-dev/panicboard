@@ -1,6 +1,7 @@
+import { mudarCampo } from './acoes';
 import { FLUXO, estaPendente, porAtualizacao, porPrazo, PRAZO_APERTADO_MS, STATUS, TODOS_STATUS } from './motor';
 import { H } from './tempo';
-import type { EstadoItem, Item, Status } from './tipos';
+import type { Estado, EstadoItem, Item, Status } from './tipos';
 
 export type Modo = 'prazo' | 'status';
 export interface Raia { id: string; nome: string; est: EstadoItem | null; itens: Item[] }
@@ -48,4 +49,34 @@ export function padraoDaRaia(raia: string, t: number): { status: Status; prazo: 
     case 'fazer': case 'fazendo': case 'revisao': return { status: raia, prazo: as18h(t, 3) };
     default: return null;
   }
+}
+
+/**
+ * O que acontece ao soltar uma demanda numa coluna (arrastar e soltar).
+ * Por status: ela vai para aquele status, em qualquer direção. Por prazo: o status fica e só o prazo muda,
+ * com o mesmo padrão de criar direto na coluna; uma entregue que sai de "Entregues" volta para "A fazer".
+ * "Entregues" marca como feita. null: a coluna não aceita (Atrasadas) ou a demanda já está nela.
+ */
+export function soltarNaRaia(S: Estado, id: string, raia: string, modo: Modo, t: number): Estado | null {
+  const i = S.itens.find((x) => x.id === id);
+  if (!i) return null;
+  const atual = montarRaias([i], modo, t).find((r) => r.itens.length);
+  if (!atual || atual.id === raia) return null;
+  let S2 = S;
+  if (raia === 'feitas' || raia === 'feito') S2 = mudarCampo(S2, id, 'status', 'feito', t);
+  else if (modo === 'status') {
+    if (!(raia in STATUS)) return null;
+    S2 = mudarCampo(S2, id, 'status', raia, t);
+  } else {
+    const padrao = padraoDaRaia(raia, t);
+    if (!padrao) return null;
+    if (i.status === 'feito') S2 = mudarCampo(S2, id, 'status', 'fazer', t);
+    S2 = mudarCampo(S2, id, 'prazo', padrao.prazo ?? '', t);
+  }
+  return S2 === S ? null : S2;
+}
+
+/** Desfaz o soltar: devolve o status e o prazo que a demanda tinha, sem tocar no resto (edições feitas depois ficam). */
+export function desfazerSoltar(S: Estado, antes: Item, t: number): Estado {
+  return mudarCampo(mudarCampo(S, antes.id, 'status', antes.status, t), antes.id, 'prazo', antes.prazo ?? '', t);
 }

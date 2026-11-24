@@ -294,6 +294,13 @@ main { padding-top: var(--nav); }
 .cartao.est-c--atrasado { border-color: rgba(229, 72, 77, .55); background: var(--alerta-bg); }
 .cartao.est-c--prazo_apertado { border-color: rgba(242, 161, 0, .6); background: var(--aviso-bg); }
 .cartao.est-c--feito { opacity: .78; }
+/* arrastar e soltar: a cópia que acompanha o ponteiro, o lugar de origem esmaecido e a coluna do soltar */
+.cartao { user-select: none; -webkit-touch-callout: none; }
+.cartao--fantasma { position: fixed; left: 0; top: 0; z-index: 40; margin: 0; pointer-events: none; transition: none; border-color: var(--line-2); box-shadow: 0 18px 36px -14px var(--sombra); will-change: transform; }
+.cartao[data-origem] { opacity: .35; }
+.raia { transition: background-color 150ms var(--ease), box-shadow 150ms var(--ease); }
+.raia[data-alvo] { box-shadow: inset 0 0 0 2px var(--line-2); background: var(--surface); }
+html[data-arrastando], html[data-arrastando] * { cursor: grabbing !important; }
 .cartao__abrir { display: grid; gap: 8px; width: 100%; text-align: left; padding: 14px 48px 14px 14px; background: none; border: 0; cursor: pointer; border-radius: inherit; }
 .cartao__topo { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 .cartao__id { white-space: nowrap; font-weight: 700; color: var(--muted); }

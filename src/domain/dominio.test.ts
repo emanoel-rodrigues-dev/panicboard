@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { adiarPrazo, anexarImagens, avancarStatus, imagensEmUso, moverItem, novaIdeia, removerImagem, criarItem, descartarIdeia, editarPasso, excluirItem, marcarPasso, mudarCampo, promoverIdeia, removerPasso } from './acoes';
 import { avaliar, avaliarTodos, estadoItem, estaPendente } from './motor';
 import { arquivarProjeto, coresDaImagem, criarProjeto, editarProjeto, lerHex, sugerirSigla, tintaPara, validarProjeto } from './projetos';
-import { as18h, montarRaias, padraoDaRaia } from './raias';
+import { as18h, montarRaias, desfazerSoltar, padraoDaRaia, soltarNaRaia } from './raias';
 import { montarExemplo } from './seed';
 import { H } from './tempo';
 import { trechosComTags, tituloDaIdeia } from './texto';
@@ -330,5 +330,73 @@ describe('imagens na demanda', () => {
     const [S, item] = criarItem(exemplo(), { projeto: 'folha', titulo: 'Com print', status: 'fazer', prioridade: 'media', prazo: null, descricao: '', checklist: [], imagens: [img('p')] }, T);
     const [S2] = moverItem(S, item.id, 'chales', T)!;
     expect(imagensEmUso(S2).has('p')).toBe(true);
+  });
+});
+
+describe('soltar a demanda numa coluna (arrastar e soltar)', () => {
+  const t = new Date(2026, 10, 18, 10, 0).getTime();
+  const dados = { projeto: 'folha', titulo: 'X', prioridade: 'media' as const, descricao: '', checklist: [] };
+  const um = (status: 'backlog' | 'fazer' | 'fazendo' | 'revisao' | 'feito', prazo: string | null) =>
+    criarItem({ ...exemplo(), itens: [] }, { ...dados, status, prazo }, t)[0];
+  const item = (S: ReturnType<typeof exemplo>) => S.itens[0];
+  const raiaDe = (S: ReturnType<typeof exemplo>, modo: 'prazo' | 'status') => montarRaias(S.itens, modo, t).find((r) => r.itens.length)!.id;
+
+  it('por status: vai para qualquer coluna, inclusive para trás e pulando etapas', () => {
+    const S = um('revisao', as18h(t, 2));
+    expect(item(soltarNaRaia(S, item(S).id, 'fazendo', 'status', t)!).status).toBe('fazendo');
+    expect(item(soltarNaRaia(S, item(S).id, 'fazer', 'status', t)!).status).toBe('fazer');
+    expect(item(soltarNaRaia(S, item(S).id, 'feito', 'status', t)!).status).toBe('feito');
+  });
+
+  it('por status: o prazo não muda e o histórico registra a movimentação', () => {
+    const S = um('fazer', as18h(t, 2));
+    const novo = item(soltarNaRaia(S, item(S).id, 'revisao', 'status', t)!);
+    expect(novo.prazo).toBe(item(S).prazo);
+    expect(novo.historico.at(-1)!.texto).toBe('Movida de A fazer para Em revisão');
+  });
+
+  it('soltar na própria coluna, ou numa que não existe, não muda nada', () => {
+    const S = um('fazendo', as18h(t, 2));
+    expect(soltarNaRaia(S, item(S).id, 'fazendo', 'status', t)).toBeNull();
+    expect(soltarNaRaia(S, item(S).id, 'nada', 'status', t)).toBeNull();
+    expect(soltarNaRaia(S, 'XX-99', 'fazer', 'status', t)).toBeNull();
+  });
+
+  it.each(['h24', 'semana', 'depois'])('por prazo: solta em "%s", cai nessa coluna e o status fica', (raia) => {
+    // começa numa coluna diferente da de destino
+    const S = um('fazendo', as18h(t, raia === 'semana' ? 20 : 1));
+    const S2 = soltarNaRaia(S, item(S).id, raia, 'prazo', t)!;
+    expect(raiaDe(S2, 'prazo')).toBe(raia);
+    expect(item(S2).status).toBe('fazendo');
+  });
+
+  it('por prazo: soltar em "Depois ou sem prazo" tira o prazo', () => {
+    const S = um('fazer', as18h(t, 1));
+    const S2 = soltarNaRaia(S, item(S).id, 'depois', 'prazo', t)!;
+    expect(item(S2).prazo).toBeNull();
+    expect(item(S2).historico.at(-1)!.texto).toBe('Prazo removido');
+  });
+
+  it('por prazo: Atrasadas não aceita; soltar em Entregues marca como feita', () => {
+    const S = um('fazer', as18h(t, 2));
+    expect(soltarNaRaia(S, item(S).id, 'atrasadas', 'prazo', t)).toBeNull();
+    expect(item(soltarNaRaia(S, item(S).id, 'feitas', 'prazo', t)!).status).toBe('feito');
+  });
+
+  it('por prazo: uma entregue solta em outra coluna é reaberta em "A fazer" com o prazo da coluna', () => {
+    const S = um('feito', as18h(t, -2));
+    const novo = item(soltarNaRaia(S, item(S).id, 'semana', 'prazo', t)!);
+    expect(novo.status).toBe('fazer');
+    expect(novo.prazo).toBe(padraoDaRaia('semana', t)!.prazo);
+  });
+
+  it('desfazer devolve status e prazo e mantém o que foi editado depois', () => {
+    const S = um('fazer', as18h(t, 2));
+    const antes = item(S);
+    const S2 = mudarCampo(soltarNaRaia(S, antes.id, 'depois', 'prazo', t)!, antes.id, 'titulo', 'Título novo', t);
+    const S3 = desfazerSoltar(S2, antes, t);
+    expect(item(S3)).toMatchObject({ status: 'fazer', prazo: antes.prazo, titulo: 'Título novo' });
+    const S4 = desfazerSoltar(soltarNaRaia(S, antes.id, 'feitas', 'prazo', t)!, antes, t);
+    expect(item(S4)).toMatchObject({ status: 'fazer', prazo: antes.prazo });
   });
 });
